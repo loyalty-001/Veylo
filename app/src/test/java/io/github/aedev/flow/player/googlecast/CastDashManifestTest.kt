@@ -88,9 +88,11 @@ class CastDashManifestTest {
     @Test
     fun `real extractor manifests combine into one ranged video and audio presentation`() {
         val video = videoFormat()
+        val audioUrl = url.replace("itag=137", "itag=140")
         val audio =
             video.copy(
                 itag = 140,
+                url = audioUrl,
                 width = null,
                 height = null,
                 mimeType = "audio/mp4; codecs=\"mp4a.40.2\"",
@@ -98,7 +100,8 @@ class CastDashManifestTest {
                 audioChannels = 2,
             )
         val videoMpd = requireNotNull(ShortsDashManifest.forVideo(video, url, 28_000))
-        val audioMpd = requireNotNull(ShortsDashManifest.forAudio(audio, url, 28_000))
+        val audioMpd = requireNotNull(ShortsDashManifest.forAudio(audio, audioUrl, 28_000))
+        assertThat(audioMpd).contains("audio/mp4")
         val xml =
             CastDashManifest.combine(
                 videoMpd,
