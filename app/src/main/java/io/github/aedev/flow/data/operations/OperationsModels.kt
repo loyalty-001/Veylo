@@ -1,6 +1,13 @@
 package io.github.aedev.flow.data.operations
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+
+internal val OperationsJson =
+    Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
 
 @Serializable
 internal data class OperationsConfig(

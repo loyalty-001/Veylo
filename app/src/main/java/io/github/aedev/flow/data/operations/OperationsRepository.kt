@@ -15,7 +15,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -38,7 +37,7 @@ class OperationsRepository
     ) {
         private val store = context.operationsStore
         private val http = client.newBuilder().callTimeout(6, TimeUnit.SECONDS).build()
-        private val json = Json { ignoreUnknownKeys = true }
+        private val json = OperationsJson
         private val consentKey = booleanPreferencesKey("analytics_enabled")
         private val idKey = stringPreferencesKey("installation_id")
         private val forgetKey = stringSetPreferencesKey("pending_forget_ids")

@@ -33,7 +33,7 @@
   "ratelimits": [
     {
       "name": "INGEST_LIMITER",
-      "namespace_id": "1001",
+      "namespace_id": "2026102501",
       "simple": {
         "limit": 30,
         "period": 60

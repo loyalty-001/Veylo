@@ -2,7 +2,7 @@ import {env} from 'cloudflare:test';
 import {beforeAll,beforeEach,describe,expect,it,vi} from 'vitest';
 import {createLocalJWKSet,exportJWK,generateKeyPair,SignJWT} from 'jose';
 import migration from '../migrations/0001_operations.sql?raw';
-import {app} from '../src/index';
+import {app} from '../src/application';
 const holder=vi.hoisted(()=>({resolver:null as ReturnType<typeof createLocalJWKSet>|null}));
 vi.mock('jose',async original=>{const real=await original<typeof import('jose')>();return {...real,createRemoteJWKSet:()=> (...args:Parameters<ReturnType<typeof createLocalJWKSet>>)=>holder.resolver!(...args)};});
 let ownerToken:string;let otherToken:string;let wrongAud:string;

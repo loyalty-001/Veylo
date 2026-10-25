@@ -1,6 +1,9 @@
 package io.github.aedev.flow.data.operations
 
 import com.google.common.truth.Truth.assertThat
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Test
 
 class OperationsPolicyTest {
@@ -28,6 +31,21 @@ class OperationsPolicyTest {
             "https://user:pass@veylo-lra9.onrender.com/",
         )) {
             assertThat(allowedAnnouncementLink(link)).isFalse()
+        }
+    }
+
+    @Test
+    fun `wire payload includes the platform required by the intake API`() {
+        val activity = OperationsJson.encodeToString(ActivityEvent("id", "3.0.3", 22, "launch"))
+        val report = OperationsJson.encodeToString(ProblemReport("other", "A submitted report", "3.0.3", 22))
+        for (payload in listOf(activity, report)) {
+            assertThat(
+                OperationsJson
+                    .parseToJsonElement(payload)
+                    .jsonObject
+                    .getValue("platform")
+                    .jsonPrimitive.content,
+            ).isEqualTo("android")
         }
     }
 }
