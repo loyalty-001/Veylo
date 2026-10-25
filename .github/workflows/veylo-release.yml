@@ -18,6 +18,7 @@ jobs:
     permissions:
       contents: write
     env:
+      EXPECTED_SIGNER_SHA256: 42c775477187eb2c1e94c867a33374a23728a41df5813695a6e6dc0d4a5a8719
       STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
       KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -27,10 +28,17 @@ jobs:
           fetch-depth: 0
       - name: Verify release source and version
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
           version=$(python3 -c 'import re; print(re.search(r"versionName\s*=\s*\"([^\"]+)\"", open("app/build.gradle.kts").read())[1])')
           test "$GITHUB_REF_NAME" = "v$version"
+          version_code=$(python3 -c 'import re; print(re.search(r"versionCode\s*=\s*(\d+)", open("app/build.gradle.kts").read())[1])')
+          previous_tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+          previous_code=$(git show "$previous_tag:app/build.gradle.kts" | python3 -c 'import re,sys; print(re.search(r"versionCode\s*=\s*(\d+)", sys.stdin.read())[1])')
+          test "$version_code" -gt "$previous_code"
+          printf 'RELEASE_VERSION_CODE=%s\n' "$version_code" >> "$GITHUB_ENV"
           git fetch --depth 1 https://github.com/Flow-Tube/Flow.git 52c4928e5af05141080f46f6c1e41cbf9c457023
       - uses: actions/setup-java@v6
         with:
@@ -64,10 +72,17 @@ jobs:
         run: ./gradlew ktlintCheck :app:testGithubDebugUnitTest --tests 'io.github.aedev.flow.data.update.*' --tests 'io.github.aedev.flow.updater.*' --tests 'io.github.aedev.flow.ui.components.layout.navigation.FlowNavigationBarTest' --tests 'io.github.aedev.flow.ui.components.FeedGridLayoutTest' --tests 'io.github.aedev.flow.ui.components.shared.FeedGridPlanTest' --tests 'io.github.aedev.flow.ui.screens.library.LibrarySectionVisibilityTest' :app:assembleGithubRelease --no-daemon
       - name: Prepare release assets
         run: python3 .github/scripts/prepare_veylo_release.py
-      - name: Verify APK signatures
+      - name: Verify APK identity and signatures
         run: |
           for apk in dist/*.apk; do
-            "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$apk"
+            "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$apk" > signer-info.txt
+            grep -Fxq "Number of signers: 1" signer-info.txt
+            grep -Fxq "Signer #1 certificate SHA-256 digest: $EXPECTED_SIGNER_SHA256" signer-info.txt
+            "$ANDROID_HOME/build-tools/36.0.0/aapt2" dump badging "$apk" > package-info.txt
+            IFS= read -r package_info < package-info.txt
+            [[ "$package_info" == *"name='io.github.loyalty001.veylo'"* ]]
+            [[ "$package_info" == *"versionCode='$RELEASE_VERSION_CODE'"* ]]
+            [[ "$package_info" == *"versionName='${GITHUB_REF_NAME#v}'"* ]]
           done
       - name: Publish GitHub release
         env:
