@@ -52,6 +52,7 @@ import io.github.aedev.flow.player.LifecyclePlaybackPreferences
 import io.github.aedev.flow.player.MemoryPressurePolicy
 import io.github.aedev.flow.player.PictureInPictureHelper
 import io.github.aedev.flow.player.PipQueueNavigation
+import io.github.aedev.flow.player.googlecast.GoogleCastManager
 import io.github.aedev.flow.ui.FlowApp
 import io.github.aedev.flow.ui.IncomingLinks
 import io.github.aedev.flow.ui.components.library.message
@@ -163,6 +164,7 @@ class MainActivity : ComponentActivity() {
         splashController.install(installSplashScreen())
 
         super.onCreate(savedInstanceState)
+        GoogleCastManager.initialize(this)
         DiscordPresenceRuntime.attachActivity(this)
 
         window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)

@@ -3,10 +3,13 @@ package io.github.aedev.flow.player.dlna
 import android.content.Context
 import android.net.wifi.WifiManager
 import android.util.Log
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.InputStream
@@ -102,42 +105,63 @@ class StreamProxyServer private constructor() {
     )
 
     private val hlsPlaylists = ConcurrentHashMap<String, String>()
+    private val dashManifests = ConcurrentHashMap<String, String>()
+    private var serverJob: Job? = null
+    private var ready = CompletableDeferred<Unit>()
+
+    suspend fun awaitReady(): Boolean =
+        withTimeoutOrNull(5_000L) {
+            ready.await()
+            isRunning.get()
+        } ?: false
+
+    fun registerDashManifest(manifest: String): String {
+        check(isRunning.get()) { "Cast relay has not started" }
+        val path = "/d/${java.util.UUID.randomUUID()}.mpd"
+        dashManifests[path] = manifest
+        return "http://$localAddress:$localPort$path"
+    }
 
     /**
      * Starts the proxy server on a random available port.
      * Must be called before registerStream().
      */
+    @Synchronized
     fun start(context: Context) {
-        if (isRunning.get()) return
+        if (isRunning.get() || serverJob?.isActive == true) return
+        ready = CompletableDeferred()
 
         localAddress = getDeviceIpAddress(context)
 
-        scope.launch {
-            try {
-                serverSocket = ServerSocket(0, MAX_CONNECTIONS, InetAddress.getByName("0.0.0.0"))
-                localPort = serverSocket!!.localPort
-                isRunning.set(true)
+        serverJob =
+            scope.launch {
+                try {
+                    serverSocket = ServerSocket(0, MAX_CONNECTIONS, InetAddress.getByName("0.0.0.0"))
+                    localPort = serverSocket!!.localPort
+                    isRunning.set(true)
+                    ready.complete(Unit)
 
-                Log.i(TAG, "Proxy started at http://$localAddress:$localPort")
+                    Log.i(TAG, "Proxy started at http://$localAddress:$localPort")
 
-                while (isRunning.get()) {
-                    try {
-                        val clientSocket = serverSocket?.accept() ?: break
-                        scope.launch {
-                            handleClient(clientSocket)
-                        }
-                    } catch (e: SocketException) {
-                        if (isRunning.get()) {
-                            Log.e(TAG, "Accept error", e)
+                    while (isRunning.get()) {
+                        try {
+                            val clientSocket = serverSocket?.accept() ?: break
+                            scope.launch {
+                                handleClient(clientSocket)
+                            }
+                        } catch (e: SocketException) {
+                            if (isRunning.get()) {
+                                Log.e(TAG, "Accept error", e)
+                            }
                         }
                     }
+                } catch (e: Exception) {
+                    ready.completeExceptionally(e)
+                    Log.e(TAG, "Proxy server error", e)
+                } finally {
+                    isRunning.set(false)
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "Proxy server error", e)
-            } finally {
-                isRunning.set(false)
             }
-        }
     }
 
     /**
@@ -147,6 +171,7 @@ class StreamProxyServer private constructor() {
         isRunning.set(false)
         streams.clear()
         hlsPlaylists.clear()
+        dashManifests.clear()
         try {
             serverSocket?.close()
         } catch (e: Exception) {
@@ -378,6 +403,29 @@ class StreamProxyServer private constructor() {
             // Renderers may append their own query parameters; the proxy keys purely on the path.
             val path = parts[1].substringBefore('?')
 
+            if (method == "OPTIONS") {
+                output.write(
+                    (
+                        "HTTP/1.1 204 No Content\r\n" +
+                            "Access-Control-Allow-Origin: *\r\n" +
+                            "Access-Control-Allow-Methods: GET, HEAD, OPTIONS\r\n" +
+                            "Access-Control-Allow-Headers: Range, Content-Type\r\n" +
+                            "Access-Control-Allow-Private-Network: true\r\n" +
+                            "Content-Length: 0\r\nConnection: close\r\n\r\n"
+                    ).toByteArray(),
+                )
+                output.flush()
+                return
+            }
+            dashManifests[path]?.let { manifest ->
+                when (method) {
+                    "HEAD" -> handlePlaylistHead(output, manifest, "application/dash+xml")
+                    "GET" -> handlePlaylistGet(output, manifest, "application/dash+xml")
+                    else -> sendError(output, 405, "Method Not Allowed")
+                }
+                return
+            }
+
             // HLS playlist endpoint (/h/…)
             if (path.startsWith("/h/") && path.endsWith(".m3u8")) {
                 val playlist = hlsPlaylists[path]
@@ -422,14 +470,16 @@ class StreamProxyServer private constructor() {
     private fun handlePlaylistHead(
         output: OutputStream,
         playlist: String,
+        contentType: String = "application/vnd.apple.mpegurl",
     ) {
         val bytes = playlist.toByteArray(Charsets.UTF_8)
         val headers =
             buildString {
                 append("HTTP/1.1 200 OK\r\n")
-                append("Content-Type: application/vnd.apple.mpegurl\r\n")
+                append("Content-Type: $contentType\r\n")
                 append("Content-Length: ${bytes.size}\r\n")
                 append("Access-Control-Allow-Origin: *\r\n")
+                append("Access-Control-Expose-Headers: Content-Length, Content-Range, Accept-Ranges\r\n")
                 append("Connection: close\r\n")
                 append("\r\n")
             }
@@ -440,14 +490,16 @@ class StreamProxyServer private constructor() {
     private fun handlePlaylistGet(
         output: OutputStream,
         playlist: String,
+        contentType: String = "application/vnd.apple.mpegurl",
     ) {
         val bytes = playlist.toByteArray(Charsets.UTF_8)
         val headers =
             buildString {
                 append("HTTP/1.1 200 OK\r\n")
-                append("Content-Type: application/vnd.apple.mpegurl\r\n")
+                append("Content-Type: $contentType\r\n")
                 append("Content-Length: ${bytes.size}\r\n")
                 append("Access-Control-Allow-Origin: *\r\n")
+                append("Access-Control-Expose-Headers: Content-Length, Content-Range, Accept-Ranges\r\n")
                 append("Connection: close\r\n")
                 append("\r\n")
             }
@@ -476,6 +528,7 @@ class StreamProxyServer private constructor() {
                 }
                 append("Accept-Ranges: bytes\r\n")
                 append("Access-Control-Allow-Origin: *\r\n")
+                append("Access-Control-Expose-Headers: Content-Length, Content-Range, Accept-Ranges\r\n")
                 append("Connection: close\r\n")
                 append("\r\n")
             }
@@ -536,6 +589,7 @@ class StreamProxyServer private constructor() {
 
                     append("Accept-Ranges: bytes\r\n")
                     append("Access-Control-Allow-Origin: *\r\n")
+                    append("Access-Control-Expose-Headers: Content-Length, Content-Range, Accept-Ranges\r\n")
                     append("Connection: close\r\n")
                     append("transferMode.dlna.org: Streaming\r\n")
                     append("contentFeatures.dlna.org: DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000\r\n")

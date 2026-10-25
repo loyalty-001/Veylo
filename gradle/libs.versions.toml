@@ -51,6 +51,7 @@ robolectric = "4.16.1"
 androidxTestCore = "1.7.0"
 
 [libraries]
+google-cast-framework = { module = "com.google.android.gms:play-services-cast-framework", version = "23.0.0" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }

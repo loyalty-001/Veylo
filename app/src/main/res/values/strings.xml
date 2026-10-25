@@ -4358,4 +4358,10 @@
     <string name="keyboard_shortcut_exit_fullscreen">Exit fullscreen</string>
     <string name="keyboard_shortcut_faster">Faster</string>
     <string name="keyboard_shortcut_slower">Slower</string>
+    <string name="google_cast_devices">Chromecast / Google TV</string>
+    <string name="google_cast_connected_device">Chromecast: %1$s</string>
+    <string name="google_cast_wifi_hint">For Philips and other Google or Android TVs, use Chromecast above. Connect your phone and TV to the same Wi-Fi.</string>
+    <string name="dlna_devices_section">Other TVs (DLNA)</string>
+    <string name="google_cast_connection_failed">Could not connect to the TV. Check that both devices are on the same Wi-Fi and try again.</string>
+    <string name="google_cast_format_unavailable">This stream cannot be sent to the TV. Try another video or quality.</string>
 </resources>
