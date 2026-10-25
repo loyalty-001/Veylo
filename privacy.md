@@ -222,3 +222,16 @@ project-operated proxy or relay in between.
   engine runs entirely on device.
 - No sharing of the device's media library. `MediaStore` results are read for display and playback
   and are not transmitted.
+
+
+## Optional Veylo operations data
+
+Official Veylo builds include optional app analytics, disabled by default. Enable or disable them in Settings, About, Privacy and problem reports. When enabled, the app reports a random installation identifier, app version and version code, platform, daily activity, and coarse playback, casting, or update error categories. It does not send viewing history, searches, video identifiers, titles, URLs, account details, or automatic crash logs. The installation identifier is kept out of Android backups.
+
+Turning analytics off stops activity reports, rotates the installation identifier, and queues deletion of linked activity when online. Daily installation activity is retained for 30 days; first reported launches for 90 days. Anonymous aggregate counts do not identify a person. Counts are reported activity, not verified unique people.
+
+Problem reports are sent only when the user selects Send report. They contain the typed message, category, app version, version code, and platform. Do not include passwords or personal information. Reports expire after 90 days. Administrative change logs are retained for 180 days.
+
+The Veylo website's tracked download link counts link requests. GitHub separately supplies release asset download counts; neither measurement proves an installation or a unique user.
+
+These operations run on Cloudflare. Cloudflare and GitHub may process request metadata such as IP addresses under their own service policies. Veylo does not store IP addresses in its analytics database. Admin access is restricted to the owner and remains disabled until two-factor authentication is configured. Announcements are fetched without an installation identifier even when analytics is disabled.

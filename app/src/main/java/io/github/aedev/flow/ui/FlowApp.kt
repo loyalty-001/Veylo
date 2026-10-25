@@ -50,6 +50,7 @@ import io.github.aedev.flow.ui.components.music.sheet.LocalMusicMenus
 import io.github.aedev.flow.ui.components.music.sheet.rememberMusicMenus
 import io.github.aedev.flow.ui.components.musicplayer.common.canTurnLight
 import io.github.aedev.flow.ui.components.musicplayer.sheet.rememberMusicPlayerSheetState
+import io.github.aedev.flow.ui.components.operations.OperationsHost
 import io.github.aedev.flow.ui.components.shared.LocalMediaOpenOrigins
 import io.github.aedev.flow.ui.components.shared.MediaMiniBarDefaults
 import io.github.aedev.flow.ui.components.shared.MediaOpenOrigins
@@ -578,6 +579,11 @@ fun FlowApp(
             needsOnboarding = needsOnboarding,
             enabled = launchPromptsEnabled,
             onOpenUpdate = { navController.navigate(UPDATE_ROUTE) { launchSingleTop = true } },
+        )
+
+        OperationsHost(
+            enabled = launchPromptsEnabled && !playerVisible && currentMusicTrack == null,
+            hasPlaybackError = playerUiState.error != null,
         )
 
         DonationPromptHost(

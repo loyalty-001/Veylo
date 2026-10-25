@@ -3,6 +3,8 @@ package io.github.aedev.flow.data.update
 import android.os.Build
 import io.github.aedev.flow.BuildConfig
 import io.github.aedev.flow.data.local.LocalDataManager
+import io.github.aedev.flow.data.operations.OperationsRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -59,6 +61,7 @@ class UpdateRepository
     constructor(
         private val client: OkHttpClient,
         private val dataManager: LocalDataManager,
+        private val operations: OperationsRepository,
     ) {
         private val mutex = Mutex()
         private val isNightly = BuildConfig.UPDATE_CHANNEL == NIGHTLY_CHANNEL
@@ -100,7 +103,22 @@ class UpdateRepository
 
         suspend fun skip(version: String) = dataManager.setSkippedUpdateVersion(version)
 
-        private suspend fun fetchLocked(): AppRelease? {
+        private suspend fun fetchLocked(): AppRelease? =
+            try {
+                fetchRemote()
+            } catch (e: IOException) {
+                try {
+                    operations.reportActivity("update_error")
+                } catch (
+                    cancel: CancellationException,
+                ) {
+                    throw cancel
+                } catch (_: Exception) {
+                }
+                throw e
+            }
+
+        private suspend fun fetchRemote(): AppRelease? {
             val body =
                 withContext(Dispatchers.IO) {
                     val request =
@@ -123,7 +141,18 @@ class UpdateRepository
                     parsed.toAppReleaseIfNewer(BuildConfig.VERSION_NAME, Build.SUPPORTED_ABIS.toList())
                 }
             dataManager.setLastUpdateCheck(System.currentTimeMillis())
-            _latest.value = release
-            return release
+            val holds =
+                try {
+                    operations.configuration().heldReleases
+                } catch (
+                    e: CancellationException,
+                ) {
+                    throw e
+                } catch (_: Exception) {
+                    emptyList()
+                }
+            val available = release?.takeUnless { "v${it.version}" in holds }
+            _latest.value = available
+            return available
         }
     }

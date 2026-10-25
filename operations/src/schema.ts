@@ -1,0 +1,12 @@
+import { z } from 'zod';
+export const version = z.string().regex(/^\d+\.\d+\.\d+(?:-[A-Za-z0-9.+-]+)?$/).max(64);
+export const platform = z.enum(['android', 'windows']);
+export const eventSchema = z.object({installId:z.uuid(),version,code:z.int().min(1).max(2147483647),platform,category:z.enum(['launch','first_launch','playback_error','cast_error','update_error'])}).strict();
+export const reportSchema = z.object({category:z.enum(['playback','casting','downloads','updates','other']),message:z.string().trim().min(10).max(2000),version,code:z.int().min(1).max(2147483647),platform}).strict();
+const safeLink = z.string().max(1000).refine(s => {if(!s)return true;try {const u=new URL(s);return u.protocol==='https:' && !u.username && !u.password && ['veylo-lra9.onrender.com','github.com'].includes(u.hostname) && (u.hostname!=='github.com'||u.pathname.startsWith('/loyalty-001/Veylo/'));}catch{return false;}},'Use a Veylo website or repository HTTPS link.');
+export const announcementSchema=z.object({title:z.string().trim().min(1).max(100),body:z.string().trim().min(1).max(1500),kind:z.enum(['banner','popup']),status:z.enum(['draft','published']),startsAt:z.int().min(0),endsAt:z.int().min(0),minCode:z.int().min(0).max(2147483647),maxCode:z.int().min(0).max(2147483647),actionLabel:z.string().trim().max(40),actionUrl:safeLink,onceOnly:z.boolean()}).strict().refine(x=>x.endsAt>x.startsAt&&x.endsAt-x.startsAt<=90*86400000,'Choose an end date within 90 days of the start.').refine(x=>x.maxCode>=x.minCode,'Maximum version code must follow minimum.').refine(x=>Boolean(x.actionUrl)===Boolean(x.actionLabel),'Provide both an action label and link.');
+export const controlsSchema=z.object({analyticsEnabled:z.boolean(),announcementsEnabled:z.boolean(),reportsEnabled:z.boolean()}).strict();
+export const holdSchema=z.object({tag:z.string().regex(/^v\d+\.\d+\.\d+$/),held:z.boolean()}).strict();
+export type Controls={analytics_enabled:number;announcements_enabled:number;reports_enabled:number};
+export type Announcement={id:string;revision:number;title:string;body:string;kind:'banner'|'popup';status:'draft'|'published';starts_at:number;ends_at:number;min_code:number;max_code:number;action_label:string;action_url:string;once_only:number;updated_at:number};
+export const wireAnnouncement=(a:Announcement)=>({id:a.id,revision:a.revision,title:a.title,body:a.body,kind:a.kind,startsAt:a.starts_at,endsAt:a.ends_at,minCode:a.min_code,maxCode:a.max_code,actionLabel:a.action_label,actionUrl:a.action_url,onceOnly:!!a.once_only});

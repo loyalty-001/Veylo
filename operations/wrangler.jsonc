@@ -1,0 +1,60 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "veylo-operations",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-25",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.1,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": false
+    }
+  },
+  "vars": {
+    "ACCESS_AUD": "not-configured",
+    "ADMIN_READY": "false",
+    "OWNER_EMAIL": "goodlucknosakhare9@gmail.com",
+    "ADMIN_ORIGIN": "https://veylo-operations.scrde.workers.dev"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "veylo-operations",
+      "database_id": "b85d6373-0e68-4816-86ff-04cf67bbfb20",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "INGEST_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 30,
+        "period": 60
+      }
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "17 3 * * *"
+    ]
+  },
+  "rules": [
+    {
+      "type": "Text",
+      "globs": [
+        "**/*.html*",
+        "**/*.css*",
+        "**/*.txt*",
+        "**/*.svg*"
+      ],
+      "fallthrough": true
+    }
+  ]
+}
