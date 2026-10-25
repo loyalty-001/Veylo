@@ -112,6 +112,24 @@ fun LibraryScreen(
             contentPadding = PaddingValues(top = ListVerticalPadding, bottom = flowBottomContentPadding(ListVerticalPadding)),
             verticalArrangement = Arrangement.spacedBy(ShelfSpacing),
         ) {
+            val hidden = hiddenSections ?: return@LazyColumn
+            val contentSections = visibleContentSections(hidden, separatePlaylistKinds, shortsEnabled)
+            val settingsSections = visibleSettingsSections(hidden, notesEnabled = notesCount != null)
+            val hasPlaylistSection =
+                contentSections.any {
+                    it == LibrarySection.PLAYLISTS || it == LibrarySection.VIDEO_PLAYLISTS || it == LibrarySection.MUSIC_PLAYLISTS
+                }
+            if (shelfPreviewsEnabled && hasPlaylistSection) {
+                item(key = "playlists-shortcut", contentType = "navigation-section") {
+                    LibraryNavigationRow(
+                        icon = LibrarySection.PLAYLISTS.icon,
+                        title = stringResource(R.string.library_playlists_label),
+                        subtitle = stringResource(R.string.library_playlists_shortcut_subtitle),
+                        onClick = { onNavigateToPlaylists(null) },
+                        modifier = Modifier.widthIn(max = FlowMaxContentWidth).padding(horizontal = RecapCardPadding),
+                    )
+                }
+            }
             item(key = "recap", contentType = "recap") {
                 RecapEntryCard(
                     readyLabel =
@@ -134,9 +152,6 @@ fun LibraryScreen(
                     modifier = Modifier.padding(horizontal = RecapCardPadding),
                 )
             }
-            val hidden = hiddenSections ?: return@LazyColumn
-            val contentSections = visibleContentSections(hidden, separatePlaylistKinds, shortsEnabled)
-            val settingsSections = visibleSettingsSections(hidden, notesEnabled = notesCount != null)
             if (shelfPreviewsEnabled && isLibraryEmpty) {
                 item(key = "library-empty", contentType = "empty") {
                     FlowEmptyState(

@@ -61,6 +61,7 @@
     <string name="library_section_header">Your Content</string>
     <string name="library_history_label">History</string>
     <string name="library_playlists_label">Playlists</string>
+    <string name="library_playlists_shortcut_subtitle">Video and music playlists</string>
     <string name="library_music_playlists_label">Music Playlists</string>
     <string name="library_music_playlists_subtitle">Your music collections</string>
     <string name="library_liked_videos_label">Likes</string>
