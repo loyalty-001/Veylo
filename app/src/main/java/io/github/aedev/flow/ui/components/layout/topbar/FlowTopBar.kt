@@ -27,6 +27,7 @@ import io.github.aedev.flow.R
 enum class FlowGlobalActionsMode {
     Auto,
     Always,
+    Compact,
     None,
 }
 
@@ -84,7 +85,7 @@ fun FlowTopBar(
 ) {
     val showGlobalActions =
         when (globalActions) {
-            FlowGlobalActionsMode.Always -> true
+            FlowGlobalActionsMode.Always, FlowGlobalActionsMode.Compact -> true
             FlowGlobalActionsMode.None -> false
             FlowGlobalActionsMode.Auto -> onBack == null
         }
@@ -111,7 +112,7 @@ fun FlowTopBar(
         actions = {
             actions()
             if (showGlobalActions) {
-                FlowGlobalActionsRow()
+                FlowGlobalActionsRow(compact = globalActions == FlowGlobalActionsMode.Compact)
             }
         },
         colors = FlowTopBarDefaults.colors(),

@@ -42,7 +42,7 @@ jobs:
       - name: Configure build memory
         run: mkdir -p ~/.gradle && cp .github/ci-gradle.properties ~/.gradle/gradle.properties
       - name: Check formatting and build
-        run: ./gradlew ktlintCheck :app:testGithubDebugUnitTest --tests 'io.github.aedev.flow.data.update.*' :app:assembleGithubDebug --no-daemon
+        run: ./gradlew ktlintCheck :app:testGithubDebugUnitTest --tests 'io.github.aedev.flow.data.update.*' --tests 'io.github.aedev.flow.ui.components.FeedGridLayoutTest' --tests 'io.github.aedev.flow.ui.components.shared.FeedGridPlanTest' --tests 'io.github.aedev.flow.ui.screens.library.LibrarySectionVisibilityTest' :app:assembleGithubDebug --no-daemon
       - uses: actions/upload-artifact@v7
         with:
           name: Veylo-debug-apks

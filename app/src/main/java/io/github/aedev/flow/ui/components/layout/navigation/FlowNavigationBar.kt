@@ -1,7 +1,9 @@
 package io.github.aedev.flow.ui.components.layout.navigation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.DropdownMenuGroup
@@ -14,14 +16,20 @@ import androidx.compose.material3.NavigationItemIconPosition
 import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarArrangement
 import androidx.compose.material3.ShortNavigationBarItem
+import androidx.compose.material3.ShortNavigationBarItemDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import io.github.aedev.flow.R
 import io.github.aedev.flow.ui.utils.LocalWindowSizeClass
 import io.github.aedev.flow.ui.utils.isMediumWidth
@@ -55,9 +63,14 @@ internal fun FlowNavigationBar(
             ShortNavigationBarItem(
                 selected = selected,
                 onClick = { onTabSelected(tab) },
-                icon = { Icon(imageVector = tab.icon(selected), contentDescription = null) },
+                icon = { FlowNavigationIcon(imageVector = tab.icon(selected), selected = selected) },
                 label = { Text(text = stringResource(tab.labelRes)) },
                 iconPosition = iconPosition,
+                colors =
+                    ShortNavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedIndicatorColor = Color.Transparent,
+                    ),
             )
         }
         if (overflowTabs.isNotEmpty()) {
@@ -85,9 +98,14 @@ private fun OverflowItem(
         ShortNavigationBarItem(
             selected = selectedTab in tabs,
             onClick = { expanded = true },
-            icon = { Icon(imageVector = Icons.Filled.MoreHoriz, contentDescription = null) },
+            icon = { FlowNavigationIcon(imageVector = Icons.Filled.MoreHoriz, selected = selectedTab in tabs) },
             label = { Text(text = stringResource(R.string.nav_more)) },
             iconPosition = iconPosition,
+            colors =
+                ShortNavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedIndicatorColor = Color.Transparent,
+                ),
         )
         DropdownMenuPopup(expanded = expanded, onDismissRequest = { expanded = false }) {
             DropdownMenuGroup(shapes = MenuDefaults.groupShape(index = 0, count = 1)) {
@@ -117,6 +135,23 @@ private fun OverflowItem(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FlowNavigationIcon(
+    imageVector: ImageVector,
+    selected: Boolean,
+) {
+    Box(modifier = Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+        Icon(imageVector = imageVector, contentDescription = null, modifier = Modifier.size(24.dp))
+        if (selected) {
+            Surface(
+                color = MaterialTheme.colorScheme.primary,
+                shape = MaterialTheme.shapes.extraSmall,
+                modifier = Modifier.align(Alignment.BottomCenter).width(16.dp).height(3.dp),
+            ) {}
         }
     }
 }

@@ -49,6 +49,7 @@ import io.github.aedev.flow.data.shorts.queue.ShortsQueueSource
 import io.github.aedev.flow.player.DeepFlowManager
 import io.github.aedev.flow.ui.components.layout.LocalFlowBottomInsets
 import io.github.aedev.flow.ui.components.layout.floatAboveBottomChrome
+import io.github.aedev.flow.ui.components.layout.topbar.FlowGlobalActionsMode
 import io.github.aedev.flow.ui.components.layout.topbar.FlowTopBar
 import io.github.aedev.flow.ui.components.rememberFeedGridLayout
 import io.github.aedev.flow.ui.components.shared.FlowPullToRefreshBox
@@ -120,6 +121,7 @@ fun HomeScreen(
         },
         topBar = {
             FlowTopBar(
+                globalActions = FlowGlobalActionsMode.Compact,
                 title = {
                     Text(
                         stringResource(R.string.app_name_uppercase),
@@ -185,7 +187,7 @@ fun HomeScreen(
                         uiState = uiState,
                         chips = chips,
                         gridStates = gridStates,
-                        feedLayout = rememberFeedGridLayout(maxWidth, homeFeedColumns),
+                        feedLayout = rememberFeedGridLayout(maxWidth, homeFeedColumns).copy(insetCompactCards = true),
                         isListView = homeViewMode == HomeViewMode.LIST,
                         homeFeedEnabled = homeFeedEnabled,
                         onVideoClick = onVideoClick,

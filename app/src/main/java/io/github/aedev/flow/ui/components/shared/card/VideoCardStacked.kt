@@ -46,7 +46,7 @@ internal fun VideoCardStacked(
         VideoCardThumbnail(
             state = state,
             isUpcoming = video.isUpcoming,
-            shape = MaterialTheme.shapes.large,
+            shape = MaterialTheme.shapes.medium,
             modifier = Modifier.fillMaxWidth(),
         )
 

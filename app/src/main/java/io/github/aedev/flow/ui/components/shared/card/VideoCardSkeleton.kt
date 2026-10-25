@@ -51,7 +51,7 @@ private fun StackedSkeleton(
     ) {
         ShimmerBone(
             modifier = Modifier.fillMaxWidth().aspectRatio(MediaThumbnailDefaults.VideoAspectRatio),
-            shape = MaterialTheme.shapes.large,
+            shape = MaterialTheme.shapes.medium,
         )
         Row(
             modifier = Modifier.fillMaxWidth().padding(VideoCardDefaults.Inset),

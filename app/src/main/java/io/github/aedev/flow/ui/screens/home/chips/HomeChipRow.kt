@@ -65,6 +65,7 @@ internal fun HomeChipRow(
             FlowFilterChip(
                 label = label,
                 selected = chip.key == state.selected,
+                compact = true,
                 onClick = { onSelect(chip.key) },
                 modifier = Modifier.semantics { contentDescription = description },
             )

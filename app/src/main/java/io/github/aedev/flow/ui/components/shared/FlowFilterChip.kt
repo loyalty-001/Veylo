@@ -14,6 +14,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -30,6 +31,7 @@ fun FlowFilterChip(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     FilterChip(
         selected = selected,
@@ -37,6 +39,7 @@ fun FlowFilterChip(
         label = {
             Text(
                 text = label,
+                style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -44,7 +47,7 @@ fun FlowFilterChip(
         shapes = FilterChipDefaults.shapes(),
         modifier = modifier,
         leadingIcon =
-            if (selected) {
+            if (selected && !compact) {
                 {
                     Icon(
                         imageVector = Icons.Rounded.Check,

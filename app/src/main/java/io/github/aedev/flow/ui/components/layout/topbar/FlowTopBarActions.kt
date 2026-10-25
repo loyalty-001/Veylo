@@ -38,7 +38,7 @@ import io.github.aedev.flow.R
  * and in isolated Compose tests.
  */
 @Composable
-internal fun FlowGlobalActionsRow() {
+internal fun FlowGlobalActionsRow(compact: Boolean = false) {
     val actions = LocalFlowGlobalActions.current ?: return
     val unreadCount by actions.unreadNotifications.collectAsStateWithLifecycle()
 
@@ -46,6 +46,19 @@ internal fun FlowGlobalActionsRow() {
         unreadCount = unreadCount,
         onClick = actions.onOpenNotifications,
     )
+    if (compact) {
+        FlowTopBarOverflow(
+            items =
+                listOf(
+                    FlowTopBarMenuItem(
+                        label = stringResource(R.string.settings),
+                        onClick = actions.onOpenSettings,
+                        icon = Icons.Outlined.Settings,
+                    ),
+                ),
+        )
+        return
+    }
     IconButton(onClick = actions.onOpenSettings) {
         Icon(
             imageVector = Icons.Outlined.Settings,

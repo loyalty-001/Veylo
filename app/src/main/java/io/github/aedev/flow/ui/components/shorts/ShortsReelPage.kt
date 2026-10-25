@@ -54,6 +54,9 @@ import io.github.aedev.flow.player.toDisplayAspectRatioOrNull
 import io.github.aedev.flow.ui.components.shared.MediaSeekBar
 import io.github.aedev.flow.ui.components.videoplayer.ambient.VideoAmbientBackground
 import io.github.aedev.flow.ui.components.videoplayer.ambient.rememberAmbientFrame
+import io.github.aedev.flow.ui.components.videoplayer.controls.BOTTOM_BAR_SCRIM_ALPHA
+import io.github.aedev.flow.ui.components.videoplayer.controls.ScrimEdge
+import io.github.aedev.flow.ui.components.videoplayer.controls.playerEdgeScrim
 import io.github.aedev.flow.ui.components.videoplayer.overlay.SpeedBoostOverlay
 import io.github.aedev.flow.ui.screens.shorts.ShortsViewModel
 import io.github.aedev.flow.ui.theme.PlayerScrim
@@ -310,6 +313,7 @@ internal fun ShortsReelPage(
                     Modifier
                         .fillMaxWidth()
                         .graphicsLayer { alpha = chromeAlpha.value }
+                        .playerEdgeScrim(ScrimEdge.Bottom, PlayerScrim.copy(alpha = BOTTOM_BAR_SCRIM_ALPHA))
                         .padding(bottom = controlsBottomPadding, start = ChromeStartPadding, end = ChromeEndPadding),
                 verticalAlignment = Alignment.Bottom,
             ) {

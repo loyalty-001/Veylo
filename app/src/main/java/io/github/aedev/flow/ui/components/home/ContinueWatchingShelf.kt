@@ -11,10 +11,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,11 +46,10 @@ import io.github.aedev.flow.ui.components.shared.focusLift
 import io.github.aedev.flow.ui.components.shared.onMenuKey
 import io.github.aedev.flow.ui.components.shared.pressScale
 import io.github.aedev.flow.ui.components.shared.quickactions.VideoQuickActionsBottomSheet
-import io.github.aedev.flow.ui.components.shared.skipDpadFocus
 import io.github.aedev.flow.ui.components.shared.thumbnailGradientOverlay
 
 object ContinueWatchingShelfDefaults {
-    val CardWidth: Dp = 350.dp
+    val CardWidth: Dp = 280.dp
 }
 
 /** [cardWidth] comes from the width the strip scrolls across, so a tablet does not pin phone-sized cards. */
@@ -154,16 +151,6 @@ private fun ContinueWatchingCard(
         width = cardWidth,
         onClick = onClick,
         onLongClick = { showMenu = true },
-        trailingContent = {
-            IconButton(onClick = onRemove, modifier = Modifier.skipDpadFocus()) {
-                Icon(
-                    imageVector = Icons.Filled.Close,
-                    contentDescription = removeLabel,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
-        },
     )
     if (showMenu) {
         VideoQuickActionsBottomSheet(
@@ -187,7 +174,6 @@ private fun ShelfVideoCardContent(
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
     progress: Float? = null,
-    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     Column(
@@ -264,7 +250,6 @@ private fun ShelfVideoCardContent(
                     )
                 }
             }
-            trailingContent?.invoke()
         }
     }
 }

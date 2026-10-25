@@ -55,15 +55,12 @@ data class FeedGridLayout(
      * wide grid pinned to one column sizes it to the automatic column instead of the whole width.
      */
     val thumbnailWidth: Dp = cardWidth - VideoCardDefaults.Inset * 2,
+    val insetCompactCards: Boolean = false,
 ) {
     /** The width between the grid's own padding, for strips that span a whole row. */
     val rowWidth: Dp get() = cardWidth * columns
 
-    /**
-     * Whether stacked cards run edge to edge. Only a single compact column does: a compact grid has no
-     * margin, so two or three pinned columns keep each card's inset to leave a gap between them.
-     */
-    val cardsBleed: Boolean get() = isCompact && columns == 1
+    val cardsBleed: Boolean get() = isCompact && columns == 1 && !insetCompactCards
 }
 
 /**

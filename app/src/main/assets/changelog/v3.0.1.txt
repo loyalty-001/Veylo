@@ -1,3 +1,20 @@
+VEYLO CHANGE LOG
+VERSION: 3.0.1
+DATE: 2026-10-25
+STATUS: stable
+
+VEYLO IMPROVEMENTS
+- Replaced the old Home header F with the Veylo V/play logo
+- Simplified the Home header and made category filters more compact
+- Aligned Home thumbnail padding and rounding
+- Made Continue Watching cards smaller and removed the visible dismiss button
+- Restyled Shorts actions with white outline icons and compact labels
+- Added subtle edge fades and a smaller Shorts overlay header
+- Added a Playlists shortcut at the top of Library, including empty libraries
+- Replaced the large navigation selection pill with a small teal indicator
+- Official releases update the existing Veylo app using its permanent signing key
+
+ORIGINAL FLOW 3.0.1 CHANGELOG
 FLOW CHANGE LOG
 VERSION: 3.0.1
 DATE: 2026-10-19
