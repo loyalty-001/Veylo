@@ -45,6 +45,26 @@ object GoogleCastManager {
     private var loadedVideoId: String? = null
     private var loadJob: Job? = null
 
+    fun initialize(context: Context) {
+        if (!runCatching { isAvailable(context) }.getOrDefault(false)) return
+        application = context.applicationContext
+        runCatching {
+            CastContext
+                .getSharedInstance(context, ContextCompat.getMainExecutor(context))
+                .addOnSuccessListener { attach(it) }
+        }
+    }
+
+    private fun attach(cast: CastContext) {
+        if (framework === cast) return
+        framework = cast
+        cast.sessionManager.addSessionManagerListener(listener, CastSession::class.java)
+        cast.sessionManager.currentCastSession?.takeIf { it.isConnected }?.let { session ->
+            _connectedDevice.value = session.castDevice?.friendlyName
+            bindRemote(session)
+        }
+    }
+
     fun isAvailable(context: Context): Boolean =
         GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS
 
@@ -57,10 +77,7 @@ object GoogleCastManager {
         CastContext
             .getSharedInstance(context, ContextCompat.getMainExecutor(context))
             .addOnSuccessListener { cast ->
-                if (framework !== cast) {
-                    framework = cast
-                    cast.sessionManager.addSessionManagerListener(listener, CastSession::class.java)
-                }
+                attach(cast)
                 val theme = ContextThemeWrapper(context, androidx.appcompat.R.style.Theme_AppCompat_DayNight_Dialog)
                 runCatching {
                     val session = cast.sessionManager.currentCastSession

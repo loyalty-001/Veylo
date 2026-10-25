@@ -13,6 +13,8 @@ object GoogleCastManager {
 
     fun seekTo(positionMs: Long) = Unit
 
+    fun initialize(context: Context) = Unit
+
     fun isAvailable(context: Context): Boolean = false
 
     fun openPicker(
