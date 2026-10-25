@@ -1,0 +1,39 @@
+VEYLO
+
+This is a modified version of Flow Android Client, licensed under GPL-3.0.
+FlowNeuroEngine is credited to Flow Android Client and its contributors.
+Original project: https://github.com/Flow-Tube/Flow
+Branding modifications: October 23, 2026.
+
+The English interface, launcher icons, splash graphics, notification logo,
+TV artwork, and default color palette have been customized for Veylo.
+The application ID is io.github.loyalty001.veylo.
+Original developer credits and license notices are preserved.
+Existing Flow backup formats and storage folders stay compatible.
+
+BUILD AN INSTALLABLE TEST APK
+Use JDK 21 and the Android SDK. Open this folder in Android Studio, or run:
+  ./gradlew :app:assembleFossDebug
+
+The output is in app/build/outputs/apk/foss/debug/.
+The universal APK works across the supported CPU architectures.
+Debug builds use application ID io.github.loyalty001.veylo.debug.
+
+GITHUB BUILD
+Upload this source to your own GitHub repository. The Build Veylo APK
+workflow builds on main, pull requests, or a manual workflow run, and
+uploads the signed debug APKs as a workflow artifact. This is a test build,
+not an app-store release. No paid hosting or server is configured.
+
+FORMATTING
+If using an extracted source archive in a new git repository, first fetch
+the original formatting baseline:
+  git fetch --depth 1 https://github.com/Flow-Tube/Flow.git 52c4928e5af05141080f46f6c1e41cbf9c457023
+Then run:
+  ./gradlew ktlintCheck
+
+The original README and other upstream documentation are retained as
+reference. Links to Flow donations, community, releases, and website are
+links to the original project. Veylo does not install upstream Flow updates.
+The original code namespace stays unchanged internally; Android app identity
+and branding are separate from the Kotlin namespace.

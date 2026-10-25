@@ -1,0 +1,47 @@
+name: Build Veylo APK
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: veylo-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Fetch upstream formatting baseline
+        run: git fetch --depth 1 https://github.com/Flow-Tube/Flow.git 52c4928e5af05141080f46f6c1e41cbf9c457023
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: |
+          sdkmanager 'platforms;android-37.0' 'build-tools;36.0.0'
+          if [ ! -e "$ANDROID_HOME/platforms/android-37" ]; then
+            ln -s android-37.0 "$ANDROID_HOME/platforms/android-37"
+          fi
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Configure build memory
+        run: mkdir -p ~/.gradle && cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+      - name: Check formatting and build
+        run: ./gradlew ktlintCheck :app:testGithubDebugUnitTest --tests 'io.github.aedev.flow.data.update.*' :app:assembleGithubDebug --no-daemon
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Veylo-debug-apks
+          path: app/build/outputs/apk/github/debug/*.apk
+          if-no-files-found: error
