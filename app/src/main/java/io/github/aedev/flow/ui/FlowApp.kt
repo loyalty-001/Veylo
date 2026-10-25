@@ -571,10 +571,17 @@ fun FlowApp(
                     },
         )
 
-        UpdateLaunchEffect(needsOnboarding = needsOnboarding, onOpenUpdate = { navController.navigate(UPDATE_ROUTE) })
+        val launchPromptsEnabled =
+            needsOnboarding == false && !isInPipMode && !isPlayerCoveringContent && !isShortsPlayerRoute &&
+                currentDestinationRoute != UPDATE_ROUTE
+        UpdateLaunchEffect(
+            needsOnboarding = needsOnboarding,
+            enabled = launchPromptsEnabled,
+            onOpenUpdate = { navController.navigate(UPDATE_ROUTE) { launchSingleTop = true } },
+        )
 
         DonationPromptHost(
-            enabled = needsOnboarding == false && !isInPipMode && !playerVisible,
+            enabled = launchPromptsEnabled && !playerVisible,
             onNavigateToDonations = { navController.navigate("donations") },
         )
     }

@@ -18,6 +18,19 @@ class UpdateScheduleTest {
     }
 
     @Test
+    fun `a background check does not suppress a launch prompt check`() {
+        assertThat(UpdateSchedule.shouldFetch(UpdateAnnouncement.LAUNCH_PAGE, lastCheckMs = now, nowMs = now)).isTrue()
+        assertThat(UpdateSchedule.shouldFetch(UpdateAnnouncement.NOTIFICATION, lastCheckMs = now, nowMs = now)).isFalse()
+    }
+
+    @Test
+    fun `background checks resume after the cooldown`() {
+        assertThat(
+            UpdateSchedule.shouldFetch(UpdateAnnouncement.NOTIFICATION, lastCheckMs = now - UpdateSchedule.COOLDOWN_MS, nowMs = now),
+        ).isTrue()
+    }
+
+    @Test
     fun `a skipped or already shown version is not announced again`() {
         assertThat(UpdateSchedule.mayAnnounce("2.3.0", skippedVersion = "2.3.0", announcedVersion = null)).isFalse()
         assertThat(UpdateSchedule.mayAnnounce("2.3.0", skippedVersion = null, announcedVersion = "2.3.0")).isFalse()

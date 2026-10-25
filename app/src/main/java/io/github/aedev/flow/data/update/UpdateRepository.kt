@@ -36,6 +36,12 @@ internal object UpdateSchedule {
         nowMs: Long,
     ): Boolean = nowMs < lastCheckMs || nowMs - lastCheckMs >= COOLDOWN_MS
 
+    fun shouldFetch(
+        announcement: UpdateAnnouncement,
+        lastCheckMs: Long,
+        nowMs: Long,
+    ): Boolean = announcement == UpdateAnnouncement.LAUNCH_PAGE || isDue(lastCheckMs, nowMs)
+
     fun mayAnnounce(
         version: String,
         skippedVersion: String?,
@@ -44,9 +50,8 @@ internal object UpdateSchedule {
 }
 
 /**
- * The one place Flow asks GitHub about releases. The launch check, the background worker and the
- * Settings button all come through here, so a cold start never fetches twice and a skipped version
- * stays skipped everywhere.
+ * Shares release selection and skipped versions between the startup prompt, background checks
+ * and the Settings button.
  */
 @Singleton
 class UpdateRepository
@@ -66,15 +71,15 @@ class UpdateRepository
         suspend fun fetch(): AppRelease? = mutex.withLock { fetchLocked() }
 
         /**
-         * For the automatic checks: fetches only once the cooldown has passed, and returns a release
-         * only if [announcement] has not shown this version before and the user has not skipped it.
+         * Background checks share a cooldown. A launch checks once per activity even when a worker
+         * checked recently, and returns only a version this surface has not shown or skipped.
          */
         suspend fun releaseToAnnounce(
             announcement: UpdateAnnouncement,
             nowMs: Long = System.currentTimeMillis(),
         ): AppRelease? =
             mutex.withLock {
-                if (!UpdateSchedule.isDue(dataManager.lastUpdateCheck.first(), nowMs)) return@withLock null
+                if (!UpdateSchedule.shouldFetch(announcement, dataManager.lastUpdateCheck.first(), nowMs)) return@withLock null
                 val release = runCatching { fetchLocked() }.getOrNull() ?: return@withLock null
                 val announced =
                     when (announcement) {
@@ -84,12 +89,14 @@ class UpdateRepository
                 if (!UpdateSchedule.mayAnnounce(release.version, dataManager.skippedUpdateVersion.first(), announced)) {
                     return@withLock null
                 }
-                when (announcement) {
-                    UpdateAnnouncement.LAUNCH_PAGE -> dataManager.setPromptedUpdateVersion(release.version)
-                    UpdateAnnouncement.NOTIFICATION -> dataManager.setNotifiedUpdateVersion(release.version)
+                // Launch prompts are recorded by the UI only when visible.
+                if (announcement == UpdateAnnouncement.NOTIFICATION) {
+                    dataManager.setNotifiedUpdateVersion(release.version)
                 }
                 release
             }
+
+        suspend fun markPrompted(version: String) = dataManager.setPromptedUpdateVersion(version)
 
         suspend fun skip(version: String) = dataManager.setSkippedUpdateVersion(version)
 
