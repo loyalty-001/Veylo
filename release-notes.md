@@ -1,17 +1,11 @@
-# Veylo 3.0.2
-
-## Improved
-- Made the bottom navigation bar smaller, with compact labels and spacing.
-- Added a startup popup when a newer version is available. Choose Update Veylo or Not now.
-- Wait until video, Shorts, or picture-in-picture playback is out of the way before showing the popup.
-- Check for new releases at startup even if a background check ran recently.
+# Veylo 3.0.3
 
 ## Fixed
-- Removed generated HTML comments from release notes shown in the app.
-- Updated repository and update-check links to loyalty-001/Veylo.
-- Kept test builds separate from official updates and labeled them Veylo Test.
+- Added Chromecast, Google TV, and Android TV discovery and playback through the Google Cast picker.
+- Added TV playback controls for play, pause, seeking, and progress.
+- Kept DLNA available for other compatible TVs.
 
 ## Installation
-Install over the official Veylo 3.0.0 or 3.0.1 app. Your library and settings stay in place. Test builds remain separate apps.
+Install over official Veylo or the 3.0.2 Cast test update. Your library and settings stay in place.
 
-The new popup handles future releases after this version is installed. Existing official builds can find this release through their current updater.
+To cast, keep your phone and TV on the same Wi-Fi network, open a video, and choose Cast, then Chromecast / Google TV.
