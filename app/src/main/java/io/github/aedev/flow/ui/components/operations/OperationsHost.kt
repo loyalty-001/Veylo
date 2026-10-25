@@ -6,7 +6,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -32,15 +31,15 @@ internal fun OperationsHost(
     val viewModel: OperationsViewModel = hiltViewModel(activity)
     val updates: UpdateLaunchViewModel = hiltViewModel(activity)
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val currentEnabled by rememberUpdatedState(enabled)
     val note by viewModel.pending.collectAsStateWithLifecycle()
     val update by updates.pendingRelease.collectAsStateWithLifecycle()
     val castFailures by GoogleCastManager.failureCount.collectAsStateWithLifecycle()
     LaunchedEffect(castFailures) { if (castFailures > 0) viewModel.health("cast_error") }
-    LaunchedEffect(lifecycle, viewModel) {
+    LaunchedEffect(lifecycle, viewModel, enabled) {
+        if (!enabled) return@LaunchedEffect
         lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             while (true) {
-                if (currentEnabled) viewModel.refresh()
+                viewModel.refresh()
                 delay(60_000)
             }
         }
