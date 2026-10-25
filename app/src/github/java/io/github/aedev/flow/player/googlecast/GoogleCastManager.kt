@@ -6,6 +6,8 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.mediarouter.app.MediaRouteChooserDialog
 import androidx.mediarouter.app.MediaRouteControllerDialog
+import androidx.mediarouter.media.MediaRouteSelector
+import com.google.android.gms.cast.CastMediaControlIntent
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaLoadRequestData
 import com.google.android.gms.cast.MediaMetadata
@@ -87,7 +89,16 @@ object GoogleCastManager {
                         if (loadedVideoId != request.videoId) load(session)
                         MediaRouteControllerDialog(theme).show()
                     } else {
-                        MediaRouteChooserDialog(theme).apply { routeSelector = cast.mergedSelector }.show()
+                        MediaRouteChooserDialog(theme)
+                            .apply {
+                                routeSelector = cast.mergedSelector ?: MediaRouteSelector
+                                    .Builder()
+                                    .addControlCategory(
+                                        CastMediaControlIntent.categoryForCast(
+                                            CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID,
+                                        ),
+                                    ).build()
+                            }.show()
                     }
                 }.onFailure { failed() }
             }.addOnFailureListener { failed() }
@@ -118,7 +129,7 @@ object GoogleCastManager {
             }
         val manager = EnhancedPlayerManager.getInstance()
         val castVideoId = loadedVideoId ?: pending?.videoId
-        if (client.isPlaying && castVideoId != null && manager.getPlayer()?.currentMediaItem?.mediaId == castVideoId) manager.pause()
+        if (client.isPlaying && castVideoId != null && manager.playerState.value.currentVideoId == castVideoId) manager.pause()
     }
 
     private val statusCallback =
