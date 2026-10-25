@@ -191,6 +191,15 @@ object GoogleCastManager {
         application?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() }
     }
 
+    private fun clearSession() {
+        loadJob?.cancel()
+        pending = null
+        loadedVideoId = null
+        _connectedDevice.value = null
+        bindRemote(null)
+        if (!DlnaCastManager.isCasting) StreamProxyServer.getInstance().stop()
+    }
+
     private val listener =
         object : SessionManagerListener<CastSession> {
             override fun onSessionStarted(
@@ -215,18 +224,14 @@ object GoogleCastManager {
                 session: CastSession,
                 error: Int,
             ) {
-                loadJob?.cancel()
-                pending = null
-                loadedVideoId = null
-                _connectedDevice.value = null
-                bindRemote(null)
-                if (!DlnaCastManager.isCasting) StreamProxyServer.getInstance().stop()
+                clearSession()
             }
 
             override fun onSessionStartFailed(
                 session: CastSession,
                 error: Int,
             ) {
+                clearSession()
                 failed()
             }
 
@@ -234,7 +239,7 @@ object GoogleCastManager {
                 session: CastSession,
                 error: Int,
             ) {
-                _connectedDevice.value = null
+                clearSession()
                 failed()
             }
 
