@@ -20,6 +20,6 @@
     "test": "vitest run",
     "check": "tsc --noEmit && node --check --input-type=module < src/ui/app.js.txt",
     "build": "esbuild src/index.ts --bundle --format=esm --target=es2022 --minify --loader:.html=text --loader:.css=text --loader:.txt=text --loader:.svg=text --outfile=.build/worker.mjs",
-    "types": "wrangler types --strict-vars=false"
+    "types": "wrangler types --strict-vars=false --include-runtime=false"
   }
 }
