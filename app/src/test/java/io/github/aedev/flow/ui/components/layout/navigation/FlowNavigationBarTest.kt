@@ -2,16 +2,23 @@ package io.github.aedev.flow.ui.components.layout.navigation
 
 import android.app.Application
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ShortNavigationBarDefaults
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
@@ -29,6 +36,7 @@ class FlowNavigationBarTest {
 
     private val context = ApplicationProvider.getApplicationContext<Application>()
     private val selections = mutableListOf<FlowTab>()
+    private var bottomInset = 0.dp
 
     private fun label(tab: FlowTab) = context.getString(tab.labelRes)
 
@@ -38,9 +46,23 @@ class FlowNavigationBarTest {
     ) {
         rule.setContent {
             MaterialTheme {
-                FlowNavigationBar(tabs = tabs, selectedTab = selected, onTabSelected = { selections += it })
+                val density = LocalDensity.current
+                bottomInset = with(density) { ShortNavigationBarDefaults.windowInsets.getBottom(this).toDp() }
+                FlowNavigationBar(
+                    tabs = tabs,
+                    selectedTab = selected,
+                    onTabSelected = { selections += it },
+                    modifier = Modifier.testTag("navigation-bar"),
+                )
             }
         }
+    }
+
+    @Test
+    fun `phone navigation uses the compact Material bar height`() {
+        setBar(FlowTab.entries.take(5), selected = FlowTab.Home)
+
+        rule.onNodeWithTag("navigation-bar").assertHeightIsEqualTo(64.dp + bottomInset)
     }
 
     @Test
