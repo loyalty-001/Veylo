@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -209,7 +209,7 @@ internal fun ShortsLikeBurst(
         modifier = modifier,
     ) {
         Icon(
-            imageVector = Icons.Filled.ThumbUp,
+            imageVector = Icons.Filled.Favorite,
             contentDescription = stringResource(R.string.cd_liked),
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(ShortsOverlayDefaults.LikeBurstSize),

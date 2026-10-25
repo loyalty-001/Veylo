@@ -332,7 +332,6 @@ internal fun ShortsReelPage(
                     likeLabel = if (style.showRailLabels) likeCount ?: stringResource(R.string.action_like) else likeCount.orEmpty(),
                     onLikeClick = {
                         scope.launch { viewModel.toggleLike(short) }
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     },
                     commentLabel =
                         if (style.showRailLabels) {
@@ -351,11 +350,10 @@ internal fun ShortsReelPage(
                             val message = context.getString(if (isSaved) R.string.shorts_unsaved else R.string.shorts_saved)
                             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                         }
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     },
                     shareLabel = if (style.showRailLabels) stringResource(R.string.action_share) else "",
                     onShareClick = actions.onShareClick,
-                    moreLabel = if (style.showRailLabels) stringResource(R.string.cd_more_options) else "",
+                    moreLabel = if (style.showRailLabels) stringResource(R.string.more_header) else "",
                     onMoreClick = actions.onMoreClick,
                     channelAvatarUrl = short.channelThumbnailUrl,
                     channelName = short.channelName,

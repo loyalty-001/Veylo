@@ -15,15 +15,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Redo
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
-import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.outlined.ThumbUp
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,19 +40,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.aedev.flow.R
 import io.github.aedev.flow.ui.components.shared.ChannelAvatarImage
-import io.github.aedev.flow.ui.components.videoplayer.controls.PlayerPillIconButton
 import io.github.aedev.flow.ui.theme.PlayerScrimContent
 import io.github.aedev.flow.ui.theme.PlayerScrimPanel
 
 private const val DISC_SPIN_MS = 4_000
-private val RailSpacing = 16.dp
-private val RailButtonSize = 44.dp
-private val RailIconSize = 24.dp
+private val RailSpacing = 4.dp
+private val RailWidth = 56.dp
+private val RailButtonSize = 48.dp
+private val RailIconSize = 28.dp
 private val RailLabelSpacing = 2.dp
 private val SoundDiscSize = 36.dp
 private val SoundDiscRim = 3.dp
@@ -75,13 +83,13 @@ internal fun ShortsActionRail(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(RailSpacing),
-        modifier = modifier,
+        modifier = modifier.width(RailWidth),
     ) {
         ShortsRailAction(
-            icon = if (isLiked) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
+            icon = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
             label = likeLabel,
             contentDescription = stringResource(R.string.action_like),
-            contentColor = if (isLiked) MaterialTheme.colorScheme.primary else PlayerScrimContent,
+            checked = isLiked,
             onClick = onLikeClick,
         )
         ShortsRailAction(
@@ -94,11 +102,11 @@ internal fun ShortsActionRail(
             icon = if (isSaved) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
             label = saveLabel,
             contentDescription = stringResource(R.string.action_save),
-            contentColor = if (isSaved) MaterialTheme.colorScheme.primary else PlayerScrimContent,
+            checked = isSaved,
             onClick = onSaveClick,
         )
         ShortsRailAction(
-            icon = Icons.Outlined.Share,
+            icon = Icons.AutoMirrored.Outlined.Redo,
             label = shareLabel,
             contentDescription = stringResource(R.string.action_share),
             onClick = onShareClick,
@@ -123,25 +131,58 @@ private fun ShortsRailAction(
     label: String,
     contentDescription: String,
     onClick: () -> Unit,
-    contentColor: Color = PlayerScrimContent,
+    checked: Boolean? = null,
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        PlayerPillIconButton(
-            onClick = onClick,
-            icon = icon,
+    val haptics = LocalHapticFeedback.current
+    val onAction = {
+        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        onClick()
+    }
+    val iconContent: @Composable () -> Unit = {
+        Icon(
+            imageVector = icon,
             contentDescription = contentDescription,
-            buttonSize = RailButtonSize,
-            iconSize = RailIconSize,
-            contentColor = contentColor,
-            haptic = HapticFeedbackType.TextHandleMove,
+            modifier = Modifier.size(RailIconSize),
         )
+    }
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (checked != null) {
+            IconToggleButton(
+                checked = checked,
+                onCheckedChange = { onAction() },
+                colors =
+                    IconButtonDefaults.iconToggleButtonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = PlayerScrimContent,
+                        checkedContainerColor = Color.Transparent,
+                        checkedContentColor = PlayerScrimContent,
+                    ),
+                modifier = Modifier.size(RailButtonSize),
+                content = iconContent,
+            )
+        } else {
+            IconButton(
+                onClick = onAction,
+                colors =
+                    IconButtonDefaults.iconButtonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = PlayerScrimContent,
+                    ),
+                modifier = Modifier.size(RailButtonSize),
+                content = iconContent,
+            )
+        }
         if (label.isNotBlank()) {
             Spacer(modifier = Modifier.height(RailLabelSpacing))
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelSmall.copy(shadow = ShortsOverlayDefaults.TextShadow),
+                style = MaterialTheme.typography.labelMedium.copy(shadow = ShortsOverlayDefaults.TextShadow),
                 color = PlayerScrimContent,
                 fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.width(RailWidth),
             )
         }
     }
