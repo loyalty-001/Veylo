@@ -9,12 +9,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import io.github.aedev.flow.R
 import io.github.aedev.flow.player.EnhancedPlayerManager
 import io.github.aedev.flow.player.PictureInPictureHelper
 import io.github.aedev.flow.player.SleepTimerManager
 import io.github.aedev.flow.player.dlna.DlnaCastManager
+import io.github.aedev.flow.player.googlecast.GoogleCastManager
 import io.github.aedev.flow.ui.components.videoplayer.controls.PlayerControlActions
 import io.github.aedev.flow.ui.components.videoplayer.controls.PlayerControlsOverlay
 import io.github.aedev.flow.ui.components.videoplayer.controls.PlayerControlsUiState
@@ -83,16 +85,19 @@ internal fun VideoStageControls(
             quantised.coerceIn(0f, 1f)
         }
     }
+    val googleCastDevice by GoogleCastManager.connectedDevice.collectAsStateWithLifecycle()
+    val googleCastPlayback by GoogleCastManager.playback.collectAsStateWithLifecycle()
+    val isGoogleCasting = googleCastPlayback.device != null && googleCastPlayback.videoId == video.id
     val playerManager = EnhancedPlayerManager.getInstance()
     val sponsorSegments by playerManager.sponsorSegments.collectAsState()
     val sponsorBlockOffForVideo by playerManager.sponsorBlockOffForVideo.collectAsState()
     val controlsState =
         PlayerControlsUiState(
             isVisible = screenState.showControls || screenState.isTouchLocked,
-            isPlaying = playerState.playWhenReady,
+            isPlaying = if (isGoogleCasting) googleCastPlayback.isPlaying else playerState.playWhenReady,
             hasEnded = playerState.hasEnded,
-            isBuffering = playerState.isBuffering,
-            duration = screenState.duration,
+            isBuffering = if (isGoogleCasting) googleCastPlayback.isBuffering else playerState.isBuffering,
+            duration = if (isGoogleCasting) googleCastPlayback.durationMs else screenState.duration,
             qualityLabel =
                 resolvePlayerQualityLabel(
                     currentQuality = playerState.currentQuality,
@@ -125,7 +130,7 @@ internal fun VideoStageControls(
             sbSubmitEnabled = prefs.sbSubmitEnabled,
             isSponsorBlockAvailable = prefs.sponsorBlockEnabled && sponsorSegments.any { it.endTime > it.startTime },
             isSponsorBlockOffForVideo = sponsorBlockOffForVideo,
-            isCasting = DlnaCastManager.isCasting,
+            isCasting = googleCastDevice != null || DlnaCastManager.isCasting,
             isLive = !playerUiState.hlsUrl.isNullOrEmpty(),
             isLiveChatAvailable = playerUiState.isLiveChatAvailable,
             isCommentsAvailable = isCommentsAvailable,
@@ -146,7 +151,9 @@ internal fun VideoStageControls(
         PlayerControlActions(
             onPlayPause = {
                 screenState.onInteraction()
-                if (playerState.hasEnded) {
+                if (isGoogleCasting) {
+                    GoogleCastManager.togglePlayback()
+                } else if (playerState.hasEnded) {
                     EnhancedPlayerManager.getInstance().replay()
                     playerViewModel.ensureNotificationServiceRunning()
                 } else if (playerState.playWhenReady) {
@@ -232,7 +239,9 @@ internal fun VideoStageControls(
             onSeek = { newPosition ->
                 screenState.onInteraction()
                 val manager = EnhancedPlayerManager.getInstance()
-                if (playerState.isLive) {
+                if (isGoogleCasting) {
+                    GoogleCastManager.seekTo(newPosition)
+                } else if (playerState.isLive) {
                     manager.seekToLiveTimeline(newPosition)
                 } else {
                     manager.seekTo(newPosition)
@@ -246,7 +255,7 @@ internal fun VideoStageControls(
     PlayerControlsOverlay(
         state = controlsState,
         actions = controlsActions,
-        currentPosition = { screenState.currentPosition },
+        currentPosition = { if (isGoogleCasting) GoogleCastManager.playback.value.positionMs else screenState.currentPosition },
         modifier =
             Modifier
                 .placedWhen(expandedSurfacesPlaced)

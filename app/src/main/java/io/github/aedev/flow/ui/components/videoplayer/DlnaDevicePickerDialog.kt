@@ -37,6 +37,9 @@ internal fun DlnaDevicePickerDialog(
     onDeviceSelected: (DlnaDevice) -> Unit,
     onStopCasting: () -> Unit,
     onDismiss: () -> Unit,
+    googleCastAvailable: Boolean = false,
+    googleCastDevice: String? = null,
+    onGoogleCastClick: () -> Unit = {},
 ) {
     FlowAlertDialog(
         onDismissRequest = onDismiss,
@@ -56,6 +59,22 @@ internal fun DlnaDevicePickerDialog(
         },
         text = {
             Column {
+                if (googleCastAvailable) {
+                    TextButton(onClick = onGoogleCastClick, modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            googleCastDevice?.let { stringResource(R.string.google_cast_connected_device, it) }
+                                ?: stringResource(R.string.google_cast_devices),
+                        )
+                    }
+                    Text(
+                        stringResource(R.string.google_cast_wifi_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                    Text(stringResource(R.string.dlna_devices_section), style = MaterialTheme.typography.labelMedium)
+                    Spacer(Modifier.size(8.dp))
+                }
                 if (!isCasting && devices.isEmpty() && !isDiscovering) {
                     Text(
                         text = stringResource(R.string.dlna_no_devices),

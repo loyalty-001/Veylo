@@ -279,6 +279,7 @@ composeCompiler {
 }
 
 dependencies {
+    "githubImplementation"(libs.google.cast.framework)
     // --- Core Android ---
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
