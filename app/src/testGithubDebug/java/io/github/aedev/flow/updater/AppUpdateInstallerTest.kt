@@ -24,7 +24,7 @@ class AppUpdateInstallerTest {
                 tag = "v3.0.1",
                 notes = "",
                 publishedAt = null,
-                pageUrl = "https://github.com/nosakhare-ezomo/Veylo/releases/tag/v3.0.1",
+                pageUrl = "https://github.com/loyalty-001/Veylo/releases/tag/v3.0.1",
                 apk = ReleaseApk("Veylo.apk", "https://example.com/Veylo.apk", 1, null),
             )
 

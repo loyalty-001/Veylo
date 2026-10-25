@@ -78,7 +78,7 @@ class ReleaseNotesTest {
         val items = parseReleaseNotes(body).sections.first().items
 
         assertThat(items[0].spans.last()).isEqualTo(Link("@PastaHimself", "https://github.com/PastaHimself"))
-        assertThat(items[1].spans.last()).isEqualTo(Link("#823", "https://github.com/nosakhare-ezomo/Veylo/issues/823"))
+        assertThat(items[1].spans.last()).isEqualTo(Link("#823", "https://github.com/loyalty-001/Veylo/issues/823"))
         assertThat(items[2].spans).containsExactly(Plain("A "), Strong("bold"), Plain(" claim")).inOrder()
     }
 
@@ -97,10 +97,10 @@ class ReleaseNotesTest {
 
     @Test
     fun `bare links become links`() {
-        val spans = parseInline("See https://github.com/nosakhare-ezomo/Veylo/releases for more").spans
+        val spans = parseInline("See https://github.com/loyalty-001/Veylo/releases for more").spans
 
         assertThat(
             spans[1],
-        ).isEqualTo(Link("https://github.com/nosakhare-ezomo/Veylo/releases", "https://github.com/nosakhare-ezomo/Veylo/releases"))
+        ).isEqualTo(Link("https://github.com/loyalty-001/Veylo/releases", "https://github.com/loyalty-001/Veylo/releases"))
     }
 }

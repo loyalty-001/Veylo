@@ -68,7 +68,7 @@ import java.time.format.FormatStyle
 
 private const val TAG = "ChangelogSheet"
 private const val CHANGELOG_DIR = "changelog"
-private const val RELEASES_URL = "https://github.com/nosakhare-ezomo/Veylo/releases"
+private const val RELEASES_URL = "https://github.com/loyalty-001/Veylo/releases"
 
 private val ListPadding = 16.dp
 private val RowPadding = 16.dp

@@ -52,7 +52,7 @@ import io.github.aedev.flow.ui.screens.settings.index.DestinationIndex
 private enum class AboutDialog { CHANGELOG, DEVICE, NOTICES }
 
 private const val WEBSITE_URL = "https://flow-tube.org"
-private const val GITHUB_URL = "https://github.com/nosakhare-ezomo/Veylo"
+private const val GITHUB_URL = "https://github.com/loyalty-001/Veylo"
 private const val REDDIT_URL = "https://www.reddit.com/r/Flow_Official/"
 private const val CREATOR_URL = "https://github.com/A-EDev"
 private const val NEWPIPE_URL = "https://github.com/TeamNewPipe/NewPipeExtractor"

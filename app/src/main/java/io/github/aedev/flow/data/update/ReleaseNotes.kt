@@ -1,6 +1,6 @@
 package io.github.aedev.flow.data.update
 
-private const val REPO_URL = "https://github.com/nosakhare-ezomo/Veylo"
+private const val REPO_URL = "https://github.com/loyalty-001/Veylo"
 private const val GITHUB_URL = "https://github.com"
 private const val RELEASE_DATE_LABEL = "**release date"
 
