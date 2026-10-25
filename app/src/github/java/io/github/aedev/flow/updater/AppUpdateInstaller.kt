@@ -18,6 +18,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import androidx.work.workDataOf
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.aedev.flow.BuildConfig
 import io.github.aedev.flow.data.update.AppRelease
 import io.github.aedev.flow.data.update.UpdateDownload
 import io.github.aedev.flow.data.update.UpdateFailure
@@ -50,9 +51,10 @@ class AppUpdateInstaller
         /** True once the installer reported a failure, until the next install attempt. */
         val installFailed: StateFlow<Boolean> = _installFailed.asStateFlow()
 
-        val isAvailable: Boolean = true
+        val isAvailable: Boolean = BuildConfig.UPDATER_ENABLED && !BuildConfig.DEBUG
 
         fun download(release: AppRelease) {
+            if (!isAvailable) return
             val apk = release.apk ?: return
             UpdateFiles.clean(context, keepVersion = null)
             val request =
@@ -103,7 +105,7 @@ class AppUpdateInstaller
                 }
             }
 
-        fun canInstall(): Boolean = context.packageManager.canRequestPackageInstalls()
+        fun canInstall(): Boolean = isAvailable && context.packageManager.canRequestPackageInstalls()
 
         fun installPermissionIntent(): Intent =
             Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}"))
@@ -111,6 +113,7 @@ class AppUpdateInstaller
         /** Hands the verified APK to the system installer; false when there is no file to install. */
         suspend fun install(version: String): Boolean =
             withContext(Dispatchers.IO) {
+                if (!isAvailable) return@withContext false
                 val apk = UpdateFiles.apkFile(context, version)
                 if (!apk.exists()) return@withContext false
                 _installFailed.value = false

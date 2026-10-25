@@ -145,6 +145,7 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
+            buildConfigField("Boolean", "UPDATER_ENABLED", "false")
             buildConfigField("String", "UPDATE_CHANNEL", "\"stable\"")
             isDebuggable = true
             isMinifyEnabled = false

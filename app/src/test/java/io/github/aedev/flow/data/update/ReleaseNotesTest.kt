@@ -7,6 +7,31 @@ import io.github.aedev.flow.data.update.NoteSpan.Strong
 import org.junit.Test
 
 class ReleaseNotesTest {
+    @Test
+    fun `GitHub metadata comments are hidden without losing release items`() {
+        val notes =
+            parseReleaseNotes(
+                """
+                <!-- Release notes generated using
+                configuration in .github/release.yml at v3.0.1 -->
+
+                ## Improvements
+                - Cleaner <!-- internal metadata -->Shorts controls
+                <!-- hidden trailing metadata
+                """.trimIndent(),
+            )
+
+        assertThat(notes.intro).isEmpty()
+        assertThat(notes.sections.single().title).isEqualTo("Improvements")
+        assertThat(
+            notes.sections
+                .single()
+                .items
+                .single()
+                .spans,
+        ).containsExactly(Plain("Cleaner Shorts controls"))
+    }
+
     private val body =
         """
         # Flow v2.3.0

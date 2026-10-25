@@ -45,6 +45,7 @@ private val InlinePattern =
 private val BulletPattern = Regex("""^[-*+]\s+""")
 private val HeadingPattern = Regex("""^(#{1,6})\s+""")
 private val RulePattern = Regex("""^([-*_])\1{2,}$""")
+private val HtmlCommentPattern = Regex("""<!--[\s\S]*?(?:-->|\z)""")
 
 /**
  * Reads the Markdown Flow's GitHub releases are written in: the `#` title and the release date line
@@ -71,7 +72,7 @@ fun parseReleaseNotes(markdown: String): ReleaseNotes {
         items = mutableListOf()
     }
 
-    markdown.replace("\r\n", "\n").lineSequence().map { it.trim() }.forEach { line ->
+    markdown.replace(HtmlCommentPattern, "").replace("\r\n", "\n").lineSequence().map { it.trim() }.forEach { line ->
         val heading = HeadingPattern.find(line)
         when {
             line.isEmpty() || RulePattern.matches(line) -> {

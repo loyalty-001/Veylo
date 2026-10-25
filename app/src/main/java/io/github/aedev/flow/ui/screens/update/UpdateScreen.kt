@@ -56,7 +56,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.aedev.flow.BuildConfig
 import io.github.aedev.flow.R
 import io.github.aedev.flow.data.update.AppRelease
-import io.github.aedev.flow.data.update.AppVersions
 import io.github.aedev.flow.data.update.UpdateFailure
 import io.github.aedev.flow.ui.components.layout.topbar.FlowTopBar
 import io.github.aedev.flow.ui.components.shared.FlowEmptyState
@@ -170,7 +169,7 @@ private fun ReleaseHeader(release: AppRelease) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(FactSpacing), verticalArrangement = Arrangement.spacedBy(FactSpacing)) {
             ReleaseFact(
                 Icons.Outlined.SyncAlt,
-                stringResource(R.string.update_version_change, AppVersions.normalize(BuildConfig.VERSION_NAME), release.version),
+                stringResource(R.string.update_version_change, BuildConfig.VERSION_NAME, release.version),
             )
             release.apk?.sizeBytes?.takeIf { it > 0 }?.let {
                 ReleaseFact(
