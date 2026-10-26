@@ -15,4 +15,4 @@ IMPROVED
 INSTALLATION
 Install over the official Veylo app or the Operations test update. Your library and settings stay in place.
 
-Analytics are optional. Veylo does not upload your viewing history, searches, or video identifiers.
+Analytics are optional and do not include your viewing history, searches, or video identifiers.
