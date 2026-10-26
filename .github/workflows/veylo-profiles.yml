@@ -49,7 +49,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Generate startup and feed profiles on managed Pixel 6
         run: |
-          ./gradlew :app:generateBaselineProfile -PbaselineProfileEmulator=true --no-configuration-cache --no-daemon
+          ./gradlew :app:generateBaselineProfile -PbaselineProfileEmulator=true --no-configuration-cache --no-daemon -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
       - uses: actions/upload-artifact@v7
         with:
           name: Veylo-Baseline-Profiles
