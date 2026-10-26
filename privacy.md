@@ -1,7 +1,6 @@
 # Privacy and Permissions
 
-Flow has no account system, no analytics or telemetry SDK, no crash reporting service, and no
-advertising identifier. Nothing is uploaded to a server operated by the project. Watch history,
+Veylo does not require an app account and has no third-party analytics SDK, automatic crash-reporting SDK, or advertising identifier. Optional operations data and user-submitted problem reports are described below. Watch history,
 subscriptions, playlists, downloads, and recommendation data are stored in a local Room database
 and in local DataStore preferences on the device. They leave the device only if the user explicitly
 starts a backup export or a device-to-device sync over their own local network.
@@ -209,12 +208,13 @@ project-operated proxy or relay in between.
   them on.
 - `returnyoutubedislikeapi.com`: Return YouTube Dislike, only if the user turns it on.
 - `api.github.com` and `github.com`: release check and changelog, `github` flavor only.
+- `veylo-operations.scrde.workers.dev`: announcements and release holds; optional analytics and explicitly submitted problem reports, `github` flavor only.
 - `discord.com`: rich presence, `github` flavor only, and only after the user links an account.
 - Local network addresses: DLNA renderers on the LAN, and the peer device during Device Sync.
 
-## What Flow does not do
+## What Veylo does not do
 
-- No account, login, or user identifier of any kind.
+- No app account or login. Optional analytics use a random installation identifier, described below.
 - No analytics, telemetry, crash reporting, or advertising SDK.
 - No background microphone, camera, or location access. Flow declares no location permission.
 - No reading or uploading of contacts, call logs, SMS, or the installed app list.
