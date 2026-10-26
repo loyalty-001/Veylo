@@ -1,0 +1,18 @@
+VEYLO CHANGE LOG
+VERSION: 3.0.4
+DATE: 2026-10-25
+STATUS: stable
+
+NEW
+- Added scheduled announcements that wait until playback is out of the way.
+- Added optional activity and app-health analytics, off by default.
+- Added a problem-report form in Settings → About → Privacy and problem reports.
+
+IMPROVED
+- Added release safety controls for compatible app versions.
+- Updated the privacy information with analytics choices and data retention.
+
+INSTALLATION
+Install over the official Veylo app or the Operations test update. Your library and settings stay in place.
+
+Analytics are optional. Veylo does not upload your viewing history, searches, or video identifiers.
