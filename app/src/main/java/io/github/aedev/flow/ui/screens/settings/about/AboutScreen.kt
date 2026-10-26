@@ -42,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import io.github.aedev.flow.R
+import io.github.aedev.flow.ui.components.operations.OperationsSettings
 import io.github.aedev.flow.ui.components.settings.SettingsDestination
 import io.github.aedev.flow.ui.components.settings.SettingsPage
 import io.github.aedev.flow.ui.components.settings.SettingsTarget
@@ -81,6 +82,7 @@ internal fun AboutScreen(
         highlight = highlight,
     ) {
         item("about.header") { AboutHeader() }
+        item("about.operations") { OperationsSettings() }
         group(key = "about.creator") {
             row(AboutIndex.creator.key) { shape -> CreatorRow(shape = shape, onClick = { open(CREATOR_URL) }) }
         }

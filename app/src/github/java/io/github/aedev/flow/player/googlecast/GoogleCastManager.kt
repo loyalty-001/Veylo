@@ -35,6 +35,8 @@ import kotlinx.coroutines.withContext
 
 /** Google owns discovery, receiver sessions and remote controls; the phone relays media bytes. */
 object GoogleCastManager {
+    private val _failureCount = MutableStateFlow(0L)
+    val failureCount: StateFlow<Long> = _failureCount.asStateFlow()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val _connectedDevice = MutableStateFlow<String?>(null)
     val connectedDevice: StateFlow<String?> = _connectedDevice.asStateFlow()
@@ -199,6 +201,7 @@ object GoogleCastManager {
     }
 
     private fun failed(message: Int = R.string.google_cast_connection_failed) {
+        _failureCount.value += 1
         application?.let { Toast.makeText(it, message, Toast.LENGTH_LONG).show() }
     }
 

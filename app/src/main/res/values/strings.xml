@@ -4364,4 +4364,14 @@
     <string name="dlna_devices_section">Other TVs (DLNA)</string>
     <string name="google_cast_connection_failed">Could not connect to the TV. Check that both devices are on the same Wi-Fi and try again.</string>
     <string name="google_cast_format_unavailable">This stream cannot be sent to the TV. Try another video or quality.</string>
+    <string name="operations_settings">Privacy and problem reports</string>
+    <string name="operations_analytics">Share optional app analytics</string>
+    <string name="operations_privacy">Off by default. Shares app version, a random installation ID, daily activity, and coarse error counts. Never sends viewing history, searches, video titles, URLs, or account details. Turning this off requests deletion of activity linked to this ID when online.</string>
+    <string name="operations_report_notice">Describe a problem you want to report. Only this message, app version, and platform are sent. Do not include passwords, private links, or personal information. Reports expire after 90 days.</string>
+    <string name="operations_report_message">What went wrong?</string>
+    <string name="operations_send_report">Send report</string>
+    <string name="operations_report_sent">Report sent. Thank you.</string>
+    <string name="operations_report_failed">Could not send the report. Check your connection and try again.</string>
+    <string name="operations_close">Close</string>
+    <string name="operations_dismiss">Dismiss</string>
 </resources>

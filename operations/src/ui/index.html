@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Veylo Admin</title>
+    <link rel="icon" href="/admin/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/admin/app.css" />
+    <script type="module" src="/admin/app.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <aside>
+      <div class="brand">V<span>VEYLO</span></div>
+      <p class="muted">Administration</p>
+      <nav aria-label="Admin">
+        <a href="#overview">Overview</a><a href="#health">App health</a
+        ><a href="#announcements">Announcements</a
+        ><a href="#releases">Releases</a><a href="#controls">Controls</a
+        ><a href="#audit">Audit log</a>
+      </nav>
+      <a class="logout" href="/cdn-cgi/access/logout">Sign out</a>
+    </aside>
+    <main id="main">
+      <header>
+        <div>
+          <p class="eyebrow">VEYLO OPERATIONS</p>
+          <h1 id="page-title">Overview</h1>
+        </div>
+        <button id="refresh">Refresh</button>
+      </header>
+      <p id="message" role="status" aria-live="polite"></p>
+      <section id="overview">
+        <div id="metrics" class="metrics"></div>
+        <p class="muted">
+          Activity is reported only by users who enable optional analytics.
+          Downloads, link clicks, and installations are different measurements.
+        </p>
+        <div class="columns">
+          <article>
+            <h2>App activity</h2>
+            <p class="muted">
+              Daily reported installations, retained for 30 days.
+            </p>
+            <div id="activity"></div>
+          </article>
+          <article>
+            <h2>Active versions today</h2>
+            <div id="versions"></div>
+          </article>
+        </div>
+        <article>
+          <h2>Website APK button clicks</h2>
+          <p class="muted">
+            Anonymous button events received from the website. Not completed
+            downloads or unique people; automated events may be included.
+          </p>
+          <div id="clicks"></div>
+        </article>
+      </section>
+      <section id="health" hidden>
+        <article>
+          <h2>Reported errors</h2>
+          <p class="muted">
+            Coarse error categories only. No video titles, URLs, searches,
+            viewing history, or automatic crash logs.
+          </p>
+          <div id="errors"></div>
+        </article>
+        <article>
+          <h2>Problem reports</h2>
+          <p class="muted">
+            Messages users chose to send. Reports expire after 90 days.
+          </p>
+          <div id="reports"></div>
+        </article>
+      </section>
+      <section id="announcements" hidden>
+        <div class="columns">
+          <article>
+            <h2 id="editor-title">New announcement</h2>
+            <form id="announcement-form">
+              <input type="hidden" name="id" /><label
+                >Title<input name="title" required maxlength="100" /></label
+              ><label
+                >Message<textarea
+                  name="body"
+                  required
+                  maxlength="1500"
+                  rows="5"
+                ></textarea>
+              </label>
+              <div class="columns compact">
+                <label
+                  >Display<select name="kind">
+                    <option value="banner">Banner</option>
+                    <option value="popup">Popup</option>
+                  </select></label
+                ><label
+                  >Minimum version code<input
+                    name="minCode"
+                    type="number"
+                    min="0"
+                    max="2147483647"
+                    value="0"
+                    required /></label
+                ><label
+                  >Maximum version code<input
+                    name="maxCode"
+                    type="number"
+                    min="0"
+                    max="2147483647"
+                    value="2147483647"
+                    required
+                /></label>
+              </div>
+              <p class="muted">
+                Version codes are the numeric build codes shown in the app’s
+                About screen. Leave the full range to target all builds.
+              </p>
+              <label
+                >Starts at (your local time)<input
+                  name="startsAt"
+                  type="datetime-local"
+                  required /></label
+              ><label
+                >Expires at (your local time)<input
+                  name="endsAt"
+                  type="datetime-local"
+                  required /></label
+              ><label
+                >Action label (optional)<input
+                  name="actionLabel"
+                  maxlength="40" /></label
+              ><label
+                >Action link (optional)<input
+                  name="actionUrl"
+                  type="url"
+                  maxlength="1000"
+                  placeholder="https://veylo-lra9.onrender.com/"
+              /></label>
+              <p class="muted">
+                Only Veylo website and repository links are accepted.
+              </p>
+              <label class="check"
+                ><input name="onceOnly" type="checkbox" checked />Show once per
+                revision</label
+              >
+              <p class="muted">
+                Popups wait until video, Shorts, PiP, and music playback are out
+                of the way. Unpublishing removes the message from the next app
+                refresh.
+              </p>
+              <div class="actions">
+                <button type="submit" name="status" value="draft">
+                  Save draft</button
+                ><button
+                  type="submit"
+                  name="status"
+                  value="published"
+                  class="primary"
+                >
+                  Publish</button
+                ><button type="button" id="new-announcement">Clear</button>
+              </div>
+            </form>
+          </article>
+          <article>
+            <h2>Preview</h2>
+            <div class="preview">
+              <p id="preview-kind" class="eyebrow">BANNER</p>
+              <h3 id="preview-title">Announcement title</h3>
+              <p id="preview-body">Your message appears here.</p>
+              <p id="preview-action"></p>
+            </div>
+            <p class="muted">
+              Plain-text content. The app uses its own theme and accessibility
+              settings.
+            </p>
+          </article>
+        </div>
+        <article>
+          <h2>Announcements</h2>
+          <div id="announcement-list"></div>
+        </article>
+      </section>
+      <section id="releases" hidden>
+        <p class="muted">
+          GitHub counts asset downloads, including repeats. A hold stops the
+          update offer for apps with release-control support; it does not delete
+          an APK, downgrade an installation, or affect older apps.
+        </p>
+        <p id="release-asof" class="muted"></p>
+        <div id="release-list"></div>
+      </section>
+      <section id="controls" hidden>
+        <article>
+          <h2>Service controls</h2>
+          <form id="controls-form">
+            <label class="check"
+              ><input type="checkbox" name="analyticsEnabled" />Accept optional
+              analytics</label
+            ><label class="check"
+              ><input type="checkbox" name="announcementsEnabled" />Deliver
+              announcements</label
+            ><label class="check"
+              ><input type="checkbox" name="reportsEnabled" />Accept problem
+              reports</label
+            ><button type="submit" class="primary">Save controls</button>
+          </form>
+        </article>
+        <article>
+          <h2>Privacy and access</h2>
+          <p>
+            Admin access is restricted to the owner through Cloudflare Access
+            and must have MFA enabled before it is unlocked.
+          </p>
+          <p>
+            App analytics use a random installation identifier, not an account
+            or device identifier. Users can turn analytics off and request
+            deletion of that identifier's activity. Daily activity expires after
+            30 days; first reported launches and submitted reports after 90
+            days; administrative audit entries after 180 days.
+          </p>
+          <p>
+            Public telemetry can be fabricated. Treat it as reported activity
+            rather than verified unique people.
+          </p>
+        </article>
+      </section>
+      <section id="audit" hidden>
+        <article>
+          <h2>Administrative changes</h2>
+          <p class="muted">
+            Recent changes to messages, controls, reports, and release holds.
+          </p>
+          <div id="audit-list"></div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

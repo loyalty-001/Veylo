@@ -69,4 +69,12 @@
   }
 })();
 </script>
+<script>
+for (const link of document.querySelectorAll('a[href="https://github.com/loyalty-001/Veylo/releases/latest/download/Veylo.apk"]')) {
+  link.addEventListener('click', () => {
+    if (navigator.doNotTrack === '1' || navigator.globalPrivacyControl || !navigator.sendBeacon) return;
+    navigator.sendBeacon('https://veylo-operations.scrde.workers.dev/v1/download-click', JSON.stringify({ variant: 'universal' }));
+  });
+}
+</script>
 </body></html>

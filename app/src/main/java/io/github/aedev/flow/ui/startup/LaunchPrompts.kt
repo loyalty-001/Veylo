@@ -17,6 +17,13 @@ class LaunchPrompts
     @Inject
     constructor() {
         private val updateSettled = MutableStateFlow(false)
+        private val operationsSettled = MutableStateFlow(false)
+        private var operationsShown = false
+
+        fun operationsCheckFinished(shown: Boolean) {
+            operationsShown = operationsShown || shown
+            operationsSettled.value = true
+        }
 
         @Volatile
         private var updateShown = false
@@ -29,6 +36,7 @@ class LaunchPrompts
         /** Waits for the launch update check (at most [waitMs]), then says whether a donation prompt may show. */
         suspend fun donationMayShow(waitMs: Long = UPDATE_WAIT_MS): Boolean {
             withTimeoutOrNull(waitMs) { updateSettled.first { it } }
-            return !updateShown
+            withTimeoutOrNull(waitMs) { operationsSettled.first { it } }
+            return !updateShown && !operationsShown
         }
     }

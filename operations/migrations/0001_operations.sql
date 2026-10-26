@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS announcements (id TEXT PRIMARY KEY, revision INTEGER NOT NULL DEFAULT 1, title TEXT NOT NULL, body TEXT NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('banner','popup')), status TEXT NOT NULL CHECK(status IN ('draft','published')), starts_at INTEGER NOT NULL, ends_at INTEGER NOT NULL, min_code INTEGER NOT NULL DEFAULT 0, max_code INTEGER NOT NULL DEFAULT 2147483647, action_label TEXT NOT NULL DEFAULT '', action_url TEXT NOT NULL DEFAULT '', once_only INTEGER NOT NULL DEFAULT 1, updated_at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS announcements_active ON announcements(status, starts_at, ends_at);
+CREATE TABLE IF NOT EXISTS controls (id INTEGER PRIMARY KEY CHECK(id=1), analytics_enabled INTEGER NOT NULL DEFAULT 1, announcements_enabled INTEGER NOT NULL DEFAULT 1, reports_enabled INTEGER NOT NULL DEFAULT 1);
+INSERT OR IGNORE INTO controls(id) VALUES(1);
+CREATE TABLE IF NOT EXISTS held_releases (tag TEXT PRIMARY KEY, held_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS daily_installs (day TEXT NOT NULL, install_id TEXT NOT NULL, version TEXT NOT NULL, code INTEGER NOT NULL, platform TEXT NOT NULL, PRIMARY KEY(day, install_id));
+CREATE INDEX IF NOT EXISTS daily_versions ON daily_installs(day, version);
+CREATE TABLE IF NOT EXISTS first_launches (install_id TEXT PRIMARY KEY, day TEXT NOT NULL, version TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS health_counts (day TEXT NOT NULL, version TEXT NOT NULL, category TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(day,version,category));
+CREATE TABLE IF NOT EXISTS download_clicks (day TEXT NOT NULL, variant TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(day,variant));
+CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, category TEXT NOT NULL, message TEXT NOT NULL, version TEXT NOT NULL, code INTEGER NOT NULL, platform TEXT NOT NULL, created_at INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','resolved')));
+CREATE INDEX IF NOT EXISTS report_dates ON reports(created_at);
+CREATE TABLE IF NOT EXISTS audit_log (id TEXT PRIMARY KEY, at INTEGER NOT NULL, actor TEXT NOT NULL, action TEXT NOT NULL, target TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS release_cache (id INTEGER PRIMARY KEY CHECK(id=1), fetched_at INTEGER NOT NULL, body TEXT NOT NULL);
