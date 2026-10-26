@@ -15,8 +15,8 @@
     },
   },
   "vars": {
-    "ACCESS_AUD": "not-configured",
-    "ADMIN_READY": "false",
+    "ACCESS_AUD": "389f8e0434ec94f8093a267fac71ba9d77ec4f354e2b7c4722f0f52ce4b4f533",
+    "ADMIN_READY": "true",
     "OWNER_EMAIL": "goodlucknosakhare9@gmail.com",
     "ADMIN_ORIGIN": "https://veylo-operations.scrde.workers.dev",
   },
