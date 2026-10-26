@@ -40,6 +40,7 @@ class OperationsRepository
         private val json = OperationsJson
         private val consentKey = booleanPreferencesKey("analytics_enabled")
         private val idKey = stringPreferencesKey("installation_id")
+        private val firstReportedKey = booleanPreferencesKey("first_launch_reported")
         private val forgetKey = stringSetPreferencesKey("pending_forget_ids")
         private val dismissedKey = stringSetPreferencesKey("dismissed_announcements")
         private val mutex = Mutex()
@@ -67,6 +68,7 @@ class OperationsRepository
                     if (!enabled) {
                         it[idKey]?.let { old -> it[forgetKey] = (it[forgetKey] ?: emptySet()) + old }
                         it.remove(idKey)
+                        it.remove(firstReportedKey)
                     }
                 }
                 lastActivityDay = null
@@ -107,7 +109,12 @@ class OperationsRepository
                     store.data.first()[idKey] ?: UUID.randomUUID().toString().also { newId ->
                         store.edit { it[idKey] = newId }
                     }
-                request("/events", json.encodeToString(ActivityEvent(id, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, category)))
+                val eventCategory = if (category == "launch" && store.data.first()[firstReportedKey] != true) "first_launch" else category
+                request(
+                    "/events",
+                    json.encodeToString(ActivityEvent(id, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, eventCategory)),
+                )
+                if (eventCategory == "first_launch") store.edit { it[firstReportedKey] = true }
                 if (category == "launch") lastActivityDay = day else healthSent.add(category)
             }
         }

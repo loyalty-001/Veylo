@@ -232,6 +232,6 @@ Turning analytics off stops activity reports, rotates the installation identifie
 
 Problem reports are sent only when the user selects Send report. They contain the typed message, category, app version, version code, and platform. Do not include passwords or personal information. Reports expire after 90 days. Administrative change logs are retained for 180 days.
 
-The Veylo website's tracked download link counts link requests. GitHub separately supplies release asset download counts; neither measurement proves an installation or a unique user.
+The Veylo website sends an anonymous aggregate event when an APK button is clicked, unless Do Not Track or Global Privacy Control is enabled. Downloads use a direct GitHub link and work independently of the counter. GitHub separately supplies release asset download counts; neither measurement proves an installation or a unique user.
 
 These operations run on Cloudflare. Cloudflare and GitHub may process request metadata such as IP addresses under their own service policies. Veylo does not store IP addresses in its analytics database. Admin access is restricted to the owner and remains disabled until two-factor authentication is configured. Announcements are fetched without an installation identifier even when analytics is disabled.

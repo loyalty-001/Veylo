@@ -3,9 +3,7 @@
   "name": "veylo-operations",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-25",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "preview_urls": false,
   "observability": {
@@ -13,22 +11,22 @@
     "head_sampling_rate": 0.1,
     "logs": {
       "enabled": true,
-      "invocation_logs": false
-    }
+      "invocation_logs": false,
+    },
   },
   "vars": {
     "ACCESS_AUD": "not-configured",
     "ADMIN_READY": "false",
     "OWNER_EMAIL": "goodlucknosakhare9@gmail.com",
-    "ADMIN_ORIGIN": "https://veylo-operations.scrde.workers.dev"
+    "ADMIN_ORIGIN": "https://veylo-operations.scrde.workers.dev",
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "veylo-operations",
       "database_id": "b85d6373-0e68-4816-86ff-04cf67bbfb20",
-      "migrations_dir": "migrations"
-    }
+      "migrations_dir": "migrations",
+    },
   ],
   "ratelimits": [
     {
@@ -36,25 +34,18 @@
       "namespace_id": "2026102501",
       "simple": {
         "limit": 30,
-        "period": 60
-      }
-    }
+        "period": 60,
+      },
+    },
   ],
   "triggers": {
-    "crons": [
-      "17 3 * * *"
-    ]
+    "crons": ["17 3 * * *"],
   },
   "rules": [
     {
       "type": "Text",
-      "globs": [
-        "**/*.html*",
-        "**/*.css*",
-        "**/*.txt*",
-        "**/*.svg*"
-      ],
-      "fallthrough": true
-    }
-  ]
+      "globs": ["**/*.html*", "**/*.css*", "**/*.txt*", "**/*.svg*"],
+      "fallthrough": true,
+    },
+  ],
 }
