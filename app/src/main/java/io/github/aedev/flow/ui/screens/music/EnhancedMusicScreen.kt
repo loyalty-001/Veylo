@@ -75,6 +75,11 @@ fun EnhancedMusicScreen(
     val hiddenShelves by libraryViewModel.hiddenShelves.collectAsStateWithLifecycle()
     val lastFmSignedIn by libraryViewModel.lastFmSignedIn.collectAsStateWithLifecycle()
     val discovery by libraryViewModel.discovery.collectAsStateWithLifecycle()
+    val listenedTracks by libraryViewModel.speedDial.collectAsStateWithLifecycle()
+    val speedDialTracks =
+        remember(listenedTracks, uiState.speedDialTracks) {
+            listenedSpeedDial(listenedTracks, uiState.speedDialTracks)
+        }
     val library =
         remember(
             ownPlaylists,
@@ -201,15 +206,6 @@ fun EnhancedMusicScreen(
                                 .take(10)
                         }
 
-                    // Raw concatenation is only the placeholder until the VM's
-                    // brain-ranked speed dial lands.
-                    val fallbackSpeedDial =
-                        remember(uiState.history, uiState.forYouTracks, uiState.listenAgain) {
-                            (uiState.history + uiState.forYouTracks + uiState.listenAgain)
-                                .audioMusicOnly()
-                                .take(26)
-                        }
-                    val speedDialTracks = uiState.speedDialTracks.ifEmpty { fallbackSpeedDial }
                     val quickPickTracks =
                         remember(uiState.forYouTracks) {
                             uiState.forYouTracks.audioMusicOnly().take(20)

@@ -4383,4 +4383,7 @@
     <string name="veylo_donation_prompt_message">Help support Veylo development.</string>
     <string name="veylo_about_website">Veylo website</string>
     <string name="veylo_about_website_address">veylo-lra9.onrender.com</string>
+    <string name="veylo_original_project">Original project and credits</string>
+    <string name="veylo_original_project_summary">Flow Android Client by A-EDev and contributors</string>
+    <string name="veylo_original_source">Original source</string>
 </resources>
