@@ -44,18 +44,12 @@ internal fun restoreMusicHistory(
         val previous = known[row.videoId]
         val artist = row.channelName.ifBlank { previous?.artist.orEmpty() }
         val channel = row.channelId.ifBlank { previous?.channelId.orEmpty() }
+        val duration = (row.duration / 1000).coerceIn(0, Int.MAX_VALUE.toLong()).toInt()
         (previous ?: MusicTrack(row.videoId, row.title, artist, row.thumbnailUrl, 0)).copy(
             title = row.title.ifBlank { previous?.title.orEmpty() },
             artist = artist,
             thumbnailUrl = row.thumbnailUrl.ifBlank { previous?.thumbnailUrl.orEmpty() },
-            duration =
-                if (row.duration >
-                    0
-                ) {
-                    (row.duration / 1000).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-                } else {
-                    previous?.duration ?: 0
-                },
+            duration = if (row.duration > 0) duration else previous?.duration ?: 0,
             channelId = channel,
             artists =
                 previous?.artists?.takeIf { it.isNotEmpty() }

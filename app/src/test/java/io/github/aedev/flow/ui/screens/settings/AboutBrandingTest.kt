@@ -26,7 +26,7 @@ class AboutBrandingTest {
     @Test
     fun headerShowsVeyloAndKeepsOriginCreditInLegal() {
         rule.setContent { MaterialTheme { AboutHeader() } }
-        rule.onNodeWithText("Veylo").assertExists()
+        rule.onNodeWithText(context.getString(R.string.app_name)).assertExists()
         rule.onNodeWithText(context.getString(R.string.veylo_origin_notice)).assertDoesNotExist()
         assertEquals(R.string.section_legal, AboutIndex.creator.section)
     }

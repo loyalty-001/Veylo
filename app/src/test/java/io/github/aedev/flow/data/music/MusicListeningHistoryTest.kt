@@ -23,9 +23,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.ConscryptMode
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [34], application = Application::class)
+@ConscryptMode(ConscryptMode.Mode.OFF)
 class MusicListeningHistoryTest {
     @Test
     fun roomPlaybackUpdatesAndClearsRecommendationSeeds() =
