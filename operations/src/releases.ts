@@ -56,3 +56,24 @@ export async function releases(
     throw error;
   }
 }
+
+export async function downloadSummary(db: D1Database) {
+  try {
+    const items = await releases(db);
+    const cache = await db
+      .prepare("SELECT fetched_at FROM release_cache WHERE id=1")
+      .first<{ fetched_at: number }>();
+    const total = items
+      .flatMap((r) => r.assets)
+      .filter((a) => a.name.endsWith(".apk"))
+      .reduce((sum, a) => sum + a.download_count, 0);
+    return {
+      total,
+      releases: items.length,
+      fetchedAt: cache?.fetched_at ?? null,
+      stale: !cache || Date.now() - cache.fetched_at >= 15 * 60000,
+    };
+  } catch {
+    return { total: null, releases: null, fetchedAt: null, stale: true };
+  }
+}

@@ -31,16 +31,20 @@
       </header>
       <p id="message" role="status" aria-live="polite"></p>
       <section id="overview">
+        <p id="collection-status" class="muted"></p>
+        <p id="download-source" class="muted"></p>
         <div id="metrics" class="metrics"></div>
         <p class="muted">
-          Activity is reported only by users who enable optional analytics.
+          Activity is reported by installations with optional analytics enabled.
           Downloads, link clicks, and installations are different measurements.
         </p>
         <div class="columns">
           <article>
             <h2>App activity</h2>
             <p class="muted">
-              Daily reported installations, retained for 30 days.
+              Daily reported installations, retained for 30 days. Activity
+              depends on app analytics settings; APK downloads are not confirmed
+              installations.
             </p>
             <div id="activity"></div>
           </article>
@@ -52,8 +56,9 @@
         <article>
           <h2>Website APK button clicks</h2>
           <p class="muted">
-            Anonymous button events received from the website. Not completed
-            downloads or unique people; automated events may be included.
+            Anonymous button events received from the website, retained for 30
+            days. Not completed downloads or unique people; automated events may
+            be included.
           </p>
           <div id="clicks"></div>
         </article>

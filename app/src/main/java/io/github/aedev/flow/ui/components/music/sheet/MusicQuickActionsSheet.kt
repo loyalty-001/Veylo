@@ -123,6 +123,10 @@ fun MusicQuickActionsSheet(
                     SongPrimaryActions(track, viewModel, onSave = { sheet.hideThen { page = SongMenuPage.Save } }, onDismiss = close)
                 }
                 QuickActionsGroup(
+                    title = stringResource(R.string.recommendations_header),
+                    rows = feedbackRows(track, viewModel, quickActions, close),
+                )
+                QuickActionsGroup(
                     title = stringResource(R.string.playback_header),
                     rows = playbackRows(track, viewModel, quickActions, onAudioEffectsClick, onSleepTimerClick, close),
                 )
@@ -138,10 +142,6 @@ fun MusicQuickActionsSheet(
                             onOpenArtists = { page = SongMenuPage.Artists },
                             onDismiss = close,
                         ),
-                )
-                QuickActionsGroup(
-                    title = stringResource(R.string.recommendations_header),
-                    rows = feedbackRows(track, viewModel, quickActions, close),
                 )
                 QuickActionsGroup(
                     title = stringResource(R.string.more_header),

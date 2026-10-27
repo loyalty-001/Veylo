@@ -7,7 +7,7 @@ import {
   wireAnnouncement,
   type Announcement,
 } from "./schema";
-import { releases } from "./releases";
+import { downloadSummary, releases } from "./releases";
 import type { AppEnv } from "./security";
 export const adminApi = new Hono<AppEnv>();
 function audit(db: D1Database, actor: string, action: string, target: string) {
@@ -20,6 +20,9 @@ function audit(db: D1Database, actor: string, action: string, target: string) {
 adminApi.get("/overview", async (c) => {
   const db = c.env.DB;
   const today = new Date().toISOString().slice(0, 10);
+  const clickCutoff = new Date(Date.now() - 29 * 86400000)
+    .toISOString()
+    .slice(0, 10);
   const results = await db.batch<Record<string, string | number>>([
     db
       .prepare("SELECT COUNT(*) total FROM daily_installs WHERE day=?")
@@ -35,11 +38,18 @@ adminApi.get("/overview", async (c) => {
         "SELECT version,COUNT(*) active FROM daily_installs WHERE day=? GROUP BY version ORDER BY active DESC",
       )
       .bind(today),
-    db.prepare(
-      "SELECT day,SUM(count) clicks FROM download_clicks GROUP BY day ORDER BY day DESC LIMIT 30",
-    ),
-    db.prepare("SELECT COALESCE(SUM(count),0) total FROM download_clicks"),
+    db
+      .prepare(
+        "SELECT day,SUM(count) clicks FROM download_clicks WHERE day>=? GROUP BY day ORDER BY day DESC LIMIT 30",
+      )
+      .bind(clickCutoff),
+    db
+      .prepare(
+        "SELECT COALESCE(SUM(count),0) total FROM download_clicks WHERE day>=?",
+      )
+      .bind(clickCutoff),
     db.prepare("SELECT * FROM controls WHERE id=1"),
+    db.prepare("SELECT source,received_at FROM collection_status"),
   ]);
   return c.json({
     today: results[0].results[0]?.total ?? 0,
@@ -51,6 +61,8 @@ adminApi.get("/overview", async (c) => {
     clicks: results[6].results,
     totalClicks: results[7].results[0]?.total ?? 0,
     controls: results[8].results[0],
+    received: results[9].results,
+    github: await downloadSummary(db),
     asOf: Date.now(),
   });
 });

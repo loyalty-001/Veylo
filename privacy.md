@@ -226,7 +226,7 @@ project-operated proxy or relay in between.
 
 ## Optional Veylo operations data
 
-Official Veylo builds include optional app analytics, disabled by default. Enable or disable them in Settings, About, Privacy and problem reports. When enabled, the app reports a random installation identifier, app version and version code, platform, daily activity, and coarse playback, casting, or update error categories. It does not send viewing history, searches, video identifiers, titles, URLs, account details, or automatic crash logs. The installation identifier is kept out of Android backups.
+Official Veylo builds include optional app analytics. Starting with version 3.0.7, analytics are enabled by default after a first-use or update notice. No activity is sent until the notice is acknowledged. An existing explicit opt-out is preserved. Choose Turn off in the notice or enable or disable analytics in Settings, Privacy and problem reports. When enabled, the app reports a random installation identifier, app version and version code, platform, daily activity, and coarse playback, casting, or update error categories. It does not send viewing history, searches, video identifiers, titles, URLs, account details, or automatic crash logs. The installation identifier is kept out of Android backups.
 
 Turning analytics off stops activity reports, rotates the installation identifier, and queues deletion of linked activity when online. Daily installation activity is retained for 30 days; first reported launches for 90 days. Anonymous aggregate counts do not identify a person. Counts are reported activity, not verified unique people.
 

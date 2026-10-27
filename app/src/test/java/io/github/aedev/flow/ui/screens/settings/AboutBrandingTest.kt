@@ -29,6 +29,7 @@ class AboutBrandingTest {
         rule.onNodeWithText(context.getString(R.string.app_name)).assertExists()
         rule.onNodeWithText(context.getString(R.string.veylo_origin_notice)).assertDoesNotExist()
         assertEquals(R.string.section_legal, AboutIndex.creator.section)
+        assertEquals("Source, licenses, and contributor credits", context.getString(R.string.veylo_original_project_summary))
     }
 
     @Test

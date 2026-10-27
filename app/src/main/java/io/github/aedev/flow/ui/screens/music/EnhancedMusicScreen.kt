@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -23,7 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -72,6 +75,13 @@ fun EnhancedMusicScreen(
     val uiState by viewModel.uiState.collectAsState()
     val ownPlaylists by libraryViewModel.playlists.collectAsStateWithLifecycle()
     val musicSubscriptions by libraryViewModel.subscriptions.collectAsStateWithLifecycle()
+    var showTaste by rememberSaveable { mutableStateOf(false) }
+    if (showTaste) {
+        MusicTasteDialog(onDismiss = { changed ->
+            showTaste = false
+            if (changed) viewModel.refresh()
+        })
+    }
     val hiddenShelves by libraryViewModel.hiddenShelves.collectAsStateWithLifecycle()
     val lastFmSignedIn by libraryViewModel.lastFmSignedIn.collectAsStateWithLifecycle()
     val discovery by libraryViewModel.discovery.collectAsStateWithLifecycle()
@@ -159,6 +169,9 @@ fun EnhancedMusicScreen(
             FlowTopBar(
                 title = stringResource(R.string.screen_title_music),
                 actions = {
+                    IconButton(onClick = { showTaste = true }) {
+                        Icon(Icons.Outlined.Tune, stringResource(R.string.music_taste_setup))
+                    }
                     IconButton(onClick = onSearchClick) {
                         Icon(Icons.Outlined.Search, stringResource(R.string.search))
                     }

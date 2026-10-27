@@ -12,6 +12,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -33,7 +34,19 @@ internal class OperationsViewModel
         private val dismissedThisSession = MutableStateFlow<Set<String>>(emptySet())
         private val serverOffset = MutableStateFlow(0L)
         val reportState = MutableStateFlow(OperationsUiState())
-        val analyticsEnabled = operations.analyticsEnabled.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+        val analyticsEnabled = operations.analyticsEnabled.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+        val analyticsNoticeNeeded =
+            operations.analyticsNoticeNeeded
+                .map<Boolean, Boolean?> {
+                    it
+                }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        val guideNeeded = operations.guideNeeded.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+        fun completeGuide() {
+            viewModelScope.launch { operations.completeGuide() }
+        }
+
+        val analyticsDelivery = operations.analyticsDelivery
         val pending =
             combine(notes, operations.dismissed, dismissedThisSession, serverOffset) { all, saved, session, offset ->
                 all.firstOrNull { it.isEligible(BuildConfig.VERSION_CODE, System.currentTimeMillis() + offset, saved + session) }
@@ -53,6 +66,7 @@ internal class OperationsViewModel
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
+                operations.deliveryFailed()
                 // Expired or unpublished content must not survive a failed refresh.
                 notes.value = emptyList()
                 prompts.operationsCheckFinished(false)
@@ -71,8 +85,13 @@ internal class OperationsViewModel
                 } catch (e: CancellationException) {
                     throw e
                 } catch (_: Exception) {
+                    operations.deliveryFailed()
                 }
             }
+        }
+
+        fun retryAnalytics() {
+            viewModelScope.launch { refresh() }
         }
 
         fun health(category: String) {
@@ -82,6 +101,7 @@ internal class OperationsViewModel
                 } catch (e: CancellationException) {
                     throw e
                 } catch (_: Exception) {
+                    operations.deliveryFailed()
                 }
             }
         }

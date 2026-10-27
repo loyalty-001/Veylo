@@ -88,6 +88,7 @@ fun MediaDownloadDialog(
                     )
                 }
 
+                DownloadDestinationHint(audioLangPref)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 val effectiveAudioForDownload =
