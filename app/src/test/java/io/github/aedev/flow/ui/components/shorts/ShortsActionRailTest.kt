@@ -2,7 +2,8 @@ package io.github.aedev.flow.ui.components.shorts
 
 import android.app.Application
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.assertHeightIsEqualTo
+import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
@@ -48,8 +49,8 @@ class ShortsActionRailTest {
         }
         val share = rule.onNodeWithContentDescription(context.getString(R.string.action_share))
         val like = rule.onNodeWithContentDescription(context.getString(R.string.action_like))
-        assertEquals(48.dp, share.getUnclippedBoundsInRoot().height)
-        assertEquals(like.getUnclippedBoundsInRoot().width, share.getUnclippedBoundsInRoot().width)
+        share.assertHeightIsEqualTo(48.dp).assertWidthIsEqualTo(48.dp)
+        like.assertHeightIsEqualTo(48.dp).assertWidthIsEqualTo(48.dp)
         share.performClick()
         assertEquals(1, shares)
     }
