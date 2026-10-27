@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build:
-    if: github.repository == 'loyalty-001/Veylo' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/admin-operations')
+    if: github.repository == 'loyalty-001/Veylo'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
