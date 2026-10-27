@@ -49,12 +49,15 @@ class MusicTasteDialogTest {
         viewModel.state.value = MusicTasteSearch(tracks = listOf(track), searched = true)
         var changed: Boolean? = null
         val context = ApplicationProvider.getApplicationContext<Application>()
+        rule.mainClock.autoAdvance = false
         rule.setContent { MaterialTheme { MusicTasteDialog(onDismiss = { changed = it }, viewModel = viewModel) } }
+        rule.mainClock.advanceTimeBy(500)
         rule.onNodeWithContentDescription(track.title).performClick()
         rule.waitUntil { !viewModel.state.value.saving }
         coVerify(exactly = 1) { repository.addToFavorites(track) }
         coVerify(exactly = 1) { likes.likeVideo(match { it.videoId == track.videoId && it.isMusic }) }
         coVerify(exactly = 1) { brain.onExplicitLike(track) }
+        rule.mainClock.advanceTimeBy(500)
         rule.onNodeWithText(context.getString(R.string.music_taste_done)).performClick()
         assertEquals(true, changed)
         assertEquals(false, viewModel.consumeChanges())
@@ -75,8 +78,10 @@ class MusicTasteDialogTest {
         coEvery { likes.removeLikeState(track.videoId) } coAnswers { saved.value = emptyList() }
         val viewModel = MusicTasteViewModel(repository, likes, brain)
         viewModel.state.value = MusicTasteSearch(tracks = listOf(track), searched = true)
+        rule.mainClock.autoAdvance = false
         rule.setContent { MaterialTheme { MusicTasteDialog(onDismiss = {}, viewModel = viewModel) } }
         rule.waitUntil { track.videoId in viewModel.favorites.value }
+        rule.mainClock.advanceTimeBy(500)
         rule.onNodeWithContentDescription(track.title).performClick()
         rule.waitUntil { !viewModel.state.value.saving }
         coVerify(exactly = 1) { repository.removeFromFavorites(track.videoId) }

@@ -48,7 +48,7 @@ class AnalyticsPreferencesTest {
                             .build()
                     }.build()
             try {
-                val repository = OperationsRepository(store, client)
+                val repository = OperationsRepository(store, client, reportingSupported = true)
                 assertTrue(repository.analyticsEnabled.first())
                 assertTrue(repository.analyticsNoticeNeeded.first())
                 repository.configuration()
@@ -62,7 +62,7 @@ class AnalyticsPreferencesTest {
                 assertEquals(1, requests.count { it.endsWith("events") })
                 repository.setAnalyticsEnabled(false)
                 assertEquals(AnalyticsDelivery.DELETION_PENDING, repository.analyticsDelivery.value)
-                val upgraded = OperationsRepository(store, client)
+                val upgraded = OperationsRepository(store, client, reportingSupported = true)
                 assertFalse(upgraded.analyticsEnabled.first())
                 assertFalse(upgraded.analyticsNoticeNeeded.first())
                 failDeletion = false
@@ -77,7 +77,11 @@ class AnalyticsPreferencesTest {
                     ].isNullOrEmpty(),
                 )
                 store.edit { it[booleanPreferencesKey("analytics_enabled")] = true }
-                assertTrue(OperationsRepository(store, client).analyticsEnabled.first())
+                assertTrue(OperationsRepository(store, client, reportingSupported = true).analyticsEnabled.first())
+                val unsupported = OperationsRepository(store, client, reportingSupported = false)
+                unsupported.configuration(force = true)
+                unsupported.reportActivity()
+                assertEquals(1, requests.count { it.endsWith("events") })
             } finally {
                 scope.cancel()
             }

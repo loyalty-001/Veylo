@@ -3,17 +3,14 @@ package io.github.aedev.flow.ui.screens.music
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -22,6 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.aedev.flow.R
 import io.github.aedev.flow.ui.components.shared.FlowAlertDialog
+import io.github.aedev.flow.ui.components.shared.FlowSearchField
 
 @Composable
 internal fun MusicTasteDialog(
@@ -30,7 +28,7 @@ internal fun MusicTasteDialog(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val favorites by viewModel.favorites.collectAsStateWithLifecycle()
-    var query by rememberSaveable { mutableStateOf("") }
+    val query = rememberTextFieldState()
     val close = {
         viewModel.close()
         onDismiss(viewModel.consumeChanges())
@@ -41,15 +39,16 @@ internal fun MusicTasteDialog(
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 Text(stringResource(R.string.music_taste_setup_summary))
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { if (it.length <= 100) query = it },
-                    label = { Text(stringResource(R.string.music_taste_search)) },
-                    singleLine = true,
-                    enabled = !state.loading && !state.saving,
+                FlowSearchField(
+                    state = query,
+                    placeholder = stringResource(R.string.music_taste_search),
+                    onSearch = viewModel::search,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                TextButton(onClick = { viewModel.search(query) }, enabled = query.trim().length >= 2 && !state.loading && !state.saving) {
+                TextButton(
+                    onClick = { viewModel.search(query.text.toString()) },
+                    enabled = query.text.trim().length >= 2 && !state.saving,
+                ) {
                     Text(stringResource(if (state.loading) R.string.music_taste_searching else R.string.search))
                 }
                 if (state.failed) Text(stringResource(R.string.music_taste_failed))

@@ -36,12 +36,13 @@ private const val API = "https://veylo-operations.scrde.workers.dev/v1"
 class OperationsRepository internal constructor(
     private val store: DataStore<Preferences>,
     client: OkHttpClient,
+    private val reportingSupported: Boolean,
 ) {
     @Inject
     constructor(
         @ApplicationContext context: Context,
         client: OkHttpClient,
-    ) : this(context.operationsStore, client)
+    ) : this(context.operationsStore, client, BuildConfig.UPDATER_ENABLED)
 
     private val http = client.newBuilder().callTimeout(6, TimeUnit.SECONDS).build()
     private val json = OperationsJson
@@ -116,7 +117,7 @@ class OperationsRepository internal constructor(
     }
 
     suspend fun reportActivity(category: String = "launch") {
-        if (!BuildConfig.UPDATER_ENABLED || store.data.first()[consentKey] != true) return
+        if (!reportingSupported || store.data.first()[consentKey] != true) return
         mutex.withLock {
             if (store.data.first()[consentKey] != true) return@withLock
             if (!cachedConfig.analyticsEnabled) {
