@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.github.aedev.flow.data.local.AppDatabase
 import io.github.aedev.flow.data.local.safePreferencesDataStore
 import io.github.aedev.flow.data.music.model.MusicTrack
 import io.github.aedev.flow.data.music.model.withTypedArtists
@@ -50,12 +51,16 @@ class PlaylistRepository(
         }
 
     // Get history
-    val history: Flow<List<MusicTrack>> =
+    private val historyMetadata: Flow<List<MusicTrack>> =
         context.playlistDataStore.data.map { prefs ->
             val json = prefs[HISTORY_KEY] ?: "[]"
             val type = object : TypeToken<List<MusicTrack>>() {}.type
             gson.fromJson<List<MusicTrack>>(json, type).orEmpty().map { it.withTypedArtists() }
         }
+
+    val history: Flow<List<MusicTrack>> by lazy {
+        musicListeningHistory(AppDatabase.getDatabase(context), historyMetadata)
+    }
 
     // Create playlist
     suspend fun createPlaylist(

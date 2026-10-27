@@ -9,7 +9,10 @@ import io.github.aedev.flow.data.local.SubscriptionRepository
 import io.github.aedev.flow.data.music.model.ArtistDetails
 import io.github.aedev.flow.data.music.model.MusicPlaylist
 import io.github.aedev.flow.data.music.model.MusicTrack
+import io.github.aedev.flow.data.music.model.audioMusicOnly
 import io.github.aedev.flow.data.playlist.sortedFor
+import io.github.aedev.flow.data.recommendation.music.MusicBrainEngine
+import io.github.aedev.flow.data.recommendation.music.isHiddenArtist
 import io.github.aedev.flow.data.scrobble.LastFmDiscovery
 import io.github.aedev.flow.data.scrobble.ScrobbleService
 import io.github.aedev.flow.data.scrobble.ScrobbleStore
@@ -25,6 +28,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import io.github.aedev.flow.data.music.PlaylistRepository as MusicPlaylistRepository
 
 private const val SHELF_LIMIT = 20
 
@@ -40,10 +44,17 @@ class MusicHomeLibraryViewModel
         playlistRepository: PlaylistRepository,
         subscriptionRepository: SubscriptionRepository,
         preferences: PlayerPreferences,
+        musicPlaylists: MusicPlaylistRepository,
+        musicBrain: MusicBrainEngine,
         scrobbleStore: ScrobbleStore,
         private val lastFmDiscovery: LastFmDiscovery,
     ) : ViewModel() {
         private val sharing = SharingStarted.WhileSubscribed(5_000)
+
+        val speedDial: StateFlow<List<MusicTrack>> =
+            combine(musicPlaylists.history, musicBrain.hiddenArtists) { history, hidden ->
+                history.audioMusicOnly().filterNot { it.isHiddenArtist(hidden) }.take(26)
+            }.stateIn(viewModelScope, sharing, emptyList())
 
         val playlists: StateFlow<List<MusicPlaylist>> =
             combine(playlistRepository.getMusicPlaylistsFlow(), preferences.playlistListOrder) { playlists, order ->
@@ -96,3 +107,13 @@ class MusicHomeLibraryViewModel
                 .map(MusicHomeShelf::fromStored)
                 .stateIn(viewModelScope, sharing, emptySet())
     }
+
+internal fun listenedSpeedDial(
+    history: List<MusicTrack>,
+    ranked: List<MusicTrack>,
+): List<MusicTrack> {
+    val listened = history.associateBy { it.videoId }
+    return (ranked.mapNotNull { listened[it.videoId] } + history)
+        .distinctBy { it.videoId }
+        .take(26)
+}

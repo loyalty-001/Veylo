@@ -24,7 +24,7 @@ internal object AboutIndex {
     val changelog = entry("changelog", R.string.about_changelog, R.string.section_app, R.string.whats_new_in_flow)
     val website = entry("website", R.string.veylo_about_website, R.string.section_contact, R.string.veylo_about_website_address)
     val github = entry("github", R.string.github_label, R.string.section_contact, R.string.github_subtitle)
-    val creator = entry("creator", R.string.about_creator, R.string.section_contact, R.string.about_creator_name)
+    val creator = entry("creator", R.string.veylo_original_project, R.string.section_legal, R.string.veylo_original_project_summary)
     val license = entry("license", R.string.about_license, R.string.section_legal, R.string.about_license_name)
     val newPipe = entry("newpipe", R.string.newpipe_extractor_title, R.string.section_legal, R.string.newpipe_extractor_subtitle)
     val notices = entry("notices", R.string.about_notices, R.string.section_legal, R.string.about_notices_summary)
