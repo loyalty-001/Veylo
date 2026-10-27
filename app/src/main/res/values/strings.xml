@@ -4418,7 +4418,7 @@
     <string name="veylo_guide_casting_title">Casting</string>
     <string name="veylo_guide_casting">Connect your phone and a supported TV to the same Wi-Fi network, then open the cast picker. Device support depends on the casting protocols available on your TV.</string>
     <string name="music_taste_setup">Shape your music</string>
-    <string name="music_taste_setup_summary">Search for an artist, genre, or song. Tick songs you enjoy to save them to Favorites and use them as recommendation seeds. Untick to remove them from Favorites. Your choices stay on this device.</string>
+    <string name="music_taste_setup_summary">Search for an artist, genre, or song. Tick songs you enjoy to add them to Liked music and use them as recommendation seeds. Untick to remove their saved likes. Your choices stay on this device.</string>
     <string name="music_taste_search">Artist, genre, or song</string>
     <string name="music_taste_searching">Searching…</string>
     <string name="music_taste_failed">Could not complete that action. Check your connection and try again.</string>

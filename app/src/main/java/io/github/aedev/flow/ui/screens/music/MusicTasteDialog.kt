@@ -46,6 +46,7 @@ internal fun MusicTasteDialog(
                     onValueChange = { if (it.length <= 100) query = it },
                     label = { Text(stringResource(R.string.music_taste_search)) },
                     singleLine = true,
+                    enabled = !state.loading && !state.saving,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 TextButton(onClick = { viewModel.search(query) }, enabled = query.trim().length >= 2 && !state.loading && !state.saving) {
