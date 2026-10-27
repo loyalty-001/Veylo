@@ -1,15 +1,9 @@
-# Veylo 3.0.4
+# Veylo 3.0.5
 
-## New
-- Added scheduled announcements that wait until playback is out of the way.
-- Added optional activity and app-health analytics, off by default.
-- Added a problem-report form in Settings → About → Privacy and problem reports.
-
-## Improved
-- Added release safety controls for compatible app versions.
-- Updated the privacy information with analytics choices and data retention.
+## Fixed
+- Cleared unconfigured payment links and crypto wallets.
+- Hidden donation actions and prompts until a payment method is set up.
+- Corrected Veylo website and license links, and removed the inherited community link.
 
 ## Installation
-Install over the official Veylo app or the Operations test update. Your library and settings stay in place.
-
-Analytics are optional and do not include your viewing history, searches, or video identifiers.
+Install over the official Veylo app. Your library and settings stay in place.

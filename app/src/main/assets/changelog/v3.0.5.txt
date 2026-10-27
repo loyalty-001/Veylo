@@ -1,0 +1,12 @@
+VEYLO CHANGE LOG
+VERSION: 3.0.5
+DATE: 2026-10-26
+STATUS: stable
+
+FIXED
+- Cleared unconfigured payment links and crypto wallets.
+- Hidden donation actions and prompts until a payment method is set up.
+- Corrected Veylo website and license links, and removed the inherited community link.
+
+INSTALLATION
+Install over the official Veylo app. Your library and settings stay in place.
