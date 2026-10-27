@@ -4374,4 +4374,13 @@
     <string name="operations_report_failed">Could not send the report. Check your connection and try again.</string>
     <string name="operations_close">Close</string>
     <string name="operations_dismiss">Dismiss</string>
+    <string name="veylo_support_title">Support Veylo Development</string>
+    <string name="veylo_support_description">Thank you for supporting Veylo.</string>
+    <string name="veylo_donations_unconfigured">Donation methods are not set up yet.</string>
+    <string name="veylo_support_open_collective">Support Veylo on Open Collective</string>
+    <string name="veylo_support_patreon">Support Veylo on Patreon</string>
+    <string name="veylo_donation_prompt_title">Support Veylo?</string>
+    <string name="veylo_donation_prompt_message">Help support Veylo development.</string>
+    <string name="veylo_about_website">Veylo website</string>
+    <string name="veylo_about_website_address">veylo-lra9.onrender.com</string>
 </resources>

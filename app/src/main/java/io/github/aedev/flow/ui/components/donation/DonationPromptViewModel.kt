@@ -28,7 +28,7 @@ class DonationPromptViewModel
         val visible: StateFlow<Boolean> = _visible.asStateFlow()
 
         fun evaluate() {
-            if (evaluated) return
+            if (evaluated || !DonationMethodsAvailable) return
             evaluated = true
             viewModelScope.launch {
                 delay(SHOW_DELAY_MS)
