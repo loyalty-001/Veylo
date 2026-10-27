@@ -80,8 +80,8 @@ class MusicTasteDialogTest {
         viewModel.state.value = MusicTasteSearch(tracks = listOf(track), searched = true)
         rule.mainClock.autoAdvance = false
         rule.setContent { MaterialTheme { MusicTasteDialog(onDismiss = {}, viewModel = viewModel) } }
-        rule.waitUntil { track.videoId in viewModel.favorites.value }
         rule.mainClock.advanceTimeBy(500)
+        rule.waitUntil { track.videoId in viewModel.favorites.value }
         rule.onNodeWithContentDescription(track.title).performClick()
         rule.waitUntil { !viewModel.state.value.saving }
         coVerify(exactly = 1) { repository.removeFromFavorites(track.videoId) }
