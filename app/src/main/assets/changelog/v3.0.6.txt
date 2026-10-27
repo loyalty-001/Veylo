@@ -1,0 +1,12 @@
+VEYLO CHANGE LOG
+VERSION: 3.0.6
+DATE: 2026-10-27
+STATUS: stable
+
+FIXED
+- Music discovery now uses saved listening history to seed related-song recommendations.
+- Speed dial only shows tracks you have played and updates as your history changes.
+- Moved original-project credits under Legal to keep About focused on Veylo.
+
+INSTALLATION
+Install over the official Veylo app. Your library and settings stay in place.
