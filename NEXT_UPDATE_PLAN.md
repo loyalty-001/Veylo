@@ -41,6 +41,7 @@ Updated October 27, 2026. Implementation and publication authorized by the owner
 - 115 focused JVM and Compose tests passed, with no failures, errors, or skips. GitHub debug APK assembly and FOSS Kotlin compilation passed.
 - CodeQL passed on the tested feature revision.
 - Backend TypeScript checks, 15 Worker tests, five DOM/website tests, build, and production dependency audit passed.
+- Managed Pixel 6 API 34 startup and Home feed profile generation passed on the tested feature revision (Actions run 40547725042, successful retry). Generated profiles are committed for this release; this is not a measured startup-speed claim.
 - Physical phone and TV checks are not available in this environment.
 
 ## Verification
