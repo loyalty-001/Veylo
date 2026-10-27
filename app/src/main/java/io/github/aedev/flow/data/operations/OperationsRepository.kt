@@ -102,6 +102,12 @@ class OperationsRepository internal constructor(
         }
     }
 
+    internal suspend fun retryActivity() {
+        mutex.withLock { lastActivityDay = null }
+        configuration(force = true)
+        reportActivity()
+    }
+
     private suspend fun flushForget() {
         val pending = store.data.first()[forgetKey] ?: return
         for (id in pending.take(10)) {

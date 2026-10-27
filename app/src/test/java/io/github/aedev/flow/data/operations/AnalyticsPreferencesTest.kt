@@ -19,6 +19,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.IOException
 import java.util.Collections
 
 class AnalyticsPreferencesTest {
@@ -31,18 +32,21 @@ class AnalyticsPreferencesTest {
             val store = PreferenceDataStoreFactory.create(scope = scope) { folder.root.resolve("operations.preferences_pb") }
             val requests = Collections.synchronizedList(mutableListOf<String>())
             var failDeletion = true
+            var failNextEvent = false
             val client =
                 OkHttpClient
                     .Builder()
                     .addInterceptor { chain ->
                         val request = chain.request()
                         requests.add(request.url.encodedPath)
+                        val failEvent = request.url.encodedPath.endsWith("events") && failNextEvent
+                        if (failEvent) failNextEvent = false
                         val config = """{"analyticsEnabled":true,"reportsEnabled":true}"""
                         Response
                             .Builder()
                             .request(request)
                             .protocol(Protocol.HTTP_1_1)
-                            .code(if (request.url.encodedPath.endsWith("forget") && failDeletion) 503 else 200)
+                            .code(if ((request.url.encodedPath.endsWith("forget") && failDeletion) || failEvent) 503 else 200)
                             .message("test")
                             .body((if (request.url.encodedPath.endsWith("config")) config else "{}").toResponseBody())
                             .build()
@@ -60,6 +64,17 @@ class AnalyticsPreferencesTest {
                 assertFalse(repository.analyticsNoticeNeeded.first())
                 repository.reportActivity()
                 assertEquals(1, requests.count { it.endsWith("events") })
+                val idKey =
+                    androidx.datastore.preferences.core
+                        .stringPreferencesKey("installation_id")
+                val originalId = store.data.first()[idKey]
+                failNextEvent = true
+                assertTrue(runCatching { repository.reportActivity("playback_error") }.exceptionOrNull() is IOException)
+                assertEquals(AnalyticsDelivery.FAILED, repository.analyticsDelivery.value)
+                repository.retryActivity()
+                assertEquals(AnalyticsDelivery.SENT, repository.analyticsDelivery.value)
+                assertEquals(originalId, store.data.first()[idKey])
+                assertEquals(3, requests.count { it.endsWith("events") })
                 repository.setAnalyticsEnabled(false)
                 assertEquals(AnalyticsDelivery.DELETION_PENDING, repository.analyticsDelivery.value)
                 val upgraded = OperationsRepository(store, client, reportingSupported = true)
@@ -69,7 +84,7 @@ class AnalyticsPreferencesTest {
                 upgraded.configuration(force = true)
                 upgraded.reportActivity()
                 assertEquals(AnalyticsDelivery.OFF, upgraded.analyticsDelivery.value)
-                assertEquals(1, requests.count { it.endsWith("events") })
+                assertEquals(3, requests.count { it.endsWith("events") })
                 assertTrue(
                     store.data.first()[
                         androidx.datastore.preferences.core
@@ -81,7 +96,7 @@ class AnalyticsPreferencesTest {
                 val unsupported = OperationsRepository(store, client, reportingSupported = false)
                 unsupported.configuration(force = true)
                 unsupported.reportActivity()
-                assertEquals(1, requests.count { it.endsWith("events") })
+                assertEquals(3, requests.count { it.endsWith("events") })
             } finally {
                 scope.cancel()
             }

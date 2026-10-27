@@ -9,6 +9,7 @@ import io.github.aedev.flow.data.operations.OperationsRepository
 import io.github.aedev.flow.data.operations.isEligible
 import io.github.aedev.flow.ui.startup.LaunchPrompts
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -30,6 +31,7 @@ internal class OperationsViewModel
         private val operations: OperationsRepository,
         private val prompts: LaunchPrompts,
     ) : ViewModel() {
+        private var retryJob: Job? = null
         private val notes = MutableStateFlow<List<AppAnnouncement>>(emptyList())
         private val dismissedThisSession = MutableStateFlow<Set<String>>(emptySet())
         private val serverOffset = MutableStateFlow(0L)
@@ -91,7 +93,17 @@ internal class OperationsViewModel
         }
 
         fun retryAnalytics() {
-            viewModelScope.launch { refresh() }
+            if (retryJob?.isActive == true) return
+            retryJob =
+                viewModelScope.launch {
+                    try {
+                        operations.retryActivity()
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (_: Exception) {
+                        operations.deliveryFailed()
+                    }
+                }
         }
 
         fun health(category: String) {
