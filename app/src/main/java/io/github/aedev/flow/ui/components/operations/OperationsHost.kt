@@ -15,6 +15,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import io.github.aedev.flow.BuildConfig
+import io.github.aedev.flow.MainActivity
 import io.github.aedev.flow.R
 import io.github.aedev.flow.data.operations.allowedAnnouncementLink
 import io.github.aedev.flow.player.googlecast.GoogleCastManager
@@ -29,6 +30,7 @@ internal fun OperationsHost(
     hasPlaybackError: Boolean,
 ) {
     val activity = LocalContext.current as? ComponentActivity ?: return
+    if (activity.intent?.getBooleanExtra(MainActivity.EXTRA_BENCHMARK_BYPASS_ONBOARDING, false) == true) return
     val viewModel: OperationsViewModel = hiltViewModel(activity)
     val updates: UpdateLaunchViewModel = hiltViewModel(activity)
     val lifecycle = LocalLifecycleOwner.current.lifecycle
