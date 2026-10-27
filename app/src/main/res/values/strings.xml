@@ -4367,7 +4367,7 @@
     <string name="operations_settings">Privacy and problem reports</string>
     <string name="operations_analytics">Share optional app analytics</string>
     <string name="operations_privacy">Enabled by default after the update notice, unless you previously turned it off. Shares app version, a random installation ID, daily activity, and coarse error counts. Never sends viewing history, searches, video titles, URLs, or account details. Turning this off requests deletion of activity linked to this ID when online.</string>
-    <string name="operations_report_notice">Describe a problem you want to report. Only this message, app version, and platform are sent. Do not include passwords, private links, or personal information. Reports expire after 90 days.</string>
+    <string name="operations_report_notice">Describe a problem you want to report. Only your message, chosen category, any error code you enter, app version, and platform are sent. Do not include passwords, private links, or personal information. Reports expire after 90 days.</string>
     <string name="operations_report_message">What went wrong?</string>
     <string name="operations_send_report">Send report</string>
     <string name="operations_report_sent">Report sent. Thank you.</string>
@@ -4408,7 +4408,7 @@
     <string name="operations_preview_version">Sending with Veylo %1$s (%2$d), Android. Review your message below.</string>
     <string name="veylo_getting_started">Getting started</string>
     <string name="veylo_guide_music_title">Music that fits your taste</string>
-    <string name="veylo_guide_music">Use Shape your music in the Music toolbar. Search for artists, genres, or songs and save songs you enjoy. Your saved songs and listening history help seed recommendations on this device. The song menu has Not interested and artist blocking.</string>
+    <string name="veylo_guide_music">Use Shape your music in the Music toolbar. Search for artists, genres, or songs and save songs you enjoy. Your saved songs and listening history help Veylo suggest similar music on this device. The song menu has Not interested and artist blocking.</string>
     <string name="veylo_guide_downloads_title">Downloads</string>
     <string name="veylo_guide_downloads">Open a video or song menu and choose Download. Pick quality and check the estimated size before starting. Find progress and retry failed downloads in Library → Downloads. Change save folders in Settings → Downloads.</string>
     <string name="veylo_guide_background_title">Background playback</string>
@@ -4418,7 +4418,7 @@
     <string name="veylo_guide_casting_title">Casting</string>
     <string name="veylo_guide_casting">Connect your phone and a supported TV to the same Wi-Fi network, then open the cast picker. Device support depends on the casting protocols available on your TV.</string>
     <string name="music_taste_setup">Shape your music</string>
-    <string name="music_taste_setup_summary">Search for an artist, genre, or song. Tick songs you enjoy to add them to Liked music and use them as recommendation seeds. Untick to remove their saved likes. Your choices stay on this device.</string>
+    <string name="music_taste_setup_summary">Search for an artist, genre, or song. Tick songs you enjoy to add them to Liked music and help shape your recommendations. Untick to remove their saved likes. Your choices stay on this device.</string>
     <string name="music_taste_search">Artist, genre, or song</string>
     <string name="music_taste_searching">Searching…</string>
     <string name="music_taste_failed">Could not complete that action. Check your connection and try again.</string>

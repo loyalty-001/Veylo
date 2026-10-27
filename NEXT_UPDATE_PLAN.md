@@ -1,4 +1,4 @@
-# Veylo next-update plan
+# Veylo 3.0.7 delivery plan
 
 Updated October 27, 2026. Implementation and publication authorized by the owner on October 27, 2026.
 
@@ -6,6 +6,7 @@ Updated October 27, 2026. Implementation and publication authorized by the owner
 
 - Enable analytics by default for new installations and existing installations that have never explicitly opted out.
 - Preserve explicit opt-outs. Keep a visible switch to disable analytics and request deletion of linked activity.
+- Send no analytics before the first-use or update notice has been acknowledged.
 - Clearly explain the default change when users install or update. Make the analytics setting easier to find, with a short summary and expandable details.
 - Keep collection limited to the existing app version, random installation ID, daily activity, and coarse error counts. Exclude viewing history, searches, video identifiers, URLs, and account details.
 - Show whether reporting succeeded or failed instead of silently hiding delivery errors.
@@ -26,6 +27,21 @@ Updated October 27, 2026. Implementation and publication authorized by the owner
 - Use the approved complete white outlined curved share arrow, directly over the video with no background circle or container.
 - Match the other Shorts action icons in visual size, stroke weight, alignment, and label spacing; do not use the enlarged size shown in the mockup.
 - Preserve an accessible touch target without enlarging the visible icon, and prevent the arrow from being clipped.
+
+## Music and daily use
+
+- The Music toolbar opens Shape your music. Search artists, genres, or songs, then choose songs to update Liked music and recommendation seeds together.
+- Recommendation feedback appears higher in song menus.
+- Download dialogs explain the configured save folder, progress, and retry location. Existing quality and size controls are retained.
+- A getting-started guide appears once and remains available in Settings.
+- Problem reports support categories, a manually entered error code, and a review step before sending.
+
+## Automated validation
+
+- 115 focused JVM and Compose tests passed, with no failures, errors, or skips. GitHub debug APK assembly and FOSS Kotlin compilation passed.
+- CodeQL passed on the tested feature revision.
+- Backend TypeScript checks, 15 Worker tests, five DOM/website tests, build, and production dependency audit passed.
+- Physical phone and TV checks are not available in this environment.
 
 ## Verification
 
