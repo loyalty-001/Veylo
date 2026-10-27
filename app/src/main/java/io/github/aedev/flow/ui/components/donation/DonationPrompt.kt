@@ -49,6 +49,7 @@ fun DonationPromptHost(
     enabled: Boolean,
     onNavigateToDonations: () -> Unit,
 ) {
+    if (!DonationMethodsAvailable) return
     val activity = LocalContext.current as? ComponentActivity ?: return
     val viewModel: DonationPromptViewModel = hiltViewModel(activity)
     val visible by viewModel.visible.collectAsStateWithLifecycle()
@@ -56,15 +57,20 @@ fun DonationPromptHost(
     if (!visible) return
 
     var dontAskAgain by rememberSaveable { mutableStateOf(false) }
-    val platforms = listOf(stringResource(R.string.donation_method_open_collective), stringResource(R.string.donation_method_patreon))
-    val methods = (platforms + DonationWallets.map { stringResource(it.name) }).joinToString(METHOD_SEPARATOR)
+    val platforms =
+        buildList {
+            if (OPEN_COLLECTIVE_URL.isNotBlank()) add(stringResource(R.string.donation_method_open_collective))
+            if (PATREON_URL.isNotBlank()) add(stringResource(R.string.donation_method_patreon))
+        }
+    val wallets = DonationWallets.filter { it.address.isNotBlank() }
+    val methods = (platforms + wallets.map { stringResource(it.name) }).joinToString(METHOD_SEPARATOR)
     FlowAlertDialog(
         onDismissRequest = { viewModel.dismiss(dontAskAgain) },
         icon = { Heart() },
-        title = { Text(stringResource(R.string.donation_prompt_title)) },
+        title = { Text(stringResource(R.string.veylo_donation_prompt_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(BodySpacing)) {
-                Text(stringResource(R.string.donation_prompt_message))
+                Text(stringResource(R.string.veylo_donation_prompt_message))
                 Text(methods, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(
                     modifier =

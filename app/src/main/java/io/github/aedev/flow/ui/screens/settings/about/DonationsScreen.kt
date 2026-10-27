@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.aedev.flow.R
 import io.github.aedev.flow.ui.components.donation.CryptoWallet
+import io.github.aedev.flow.ui.components.donation.DonationMethodsAvailable
 import io.github.aedev.flow.ui.components.donation.DonationWallets
 import io.github.aedev.flow.ui.components.donation.OPEN_COLLECTIVE_URL
 import io.github.aedev.flow.ui.components.donation.PATREON_URL
@@ -44,9 +45,9 @@ private val HeaderPadding = 24.dp
 private val HeaderSpacing = 12.dp
 private val HeroIconSize = 48.dp
 
-/** Ways to support the project: Open Collective, Patreon, or a wallet address copied with one tap. */
 @Composable
 fun DonationsScreen(onNavigateBack: () -> Unit) {
+    val wallets = DonationWallets.filter { it.address.isNotBlank() }
     val uriHandler = LocalUriHandler.current
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
@@ -72,43 +73,57 @@ fun DonationsScreen(onNavigateBack: () -> Unit) {
                     modifier = Modifier.size(HeroIconSize),
                 )
                 Text(
-                    text = stringResource(R.string.support_flow_dev_title),
+                    text = stringResource(R.string.veylo_support_title),
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center,
                 )
                 Text(
-                    text = stringResource(R.string.support_flow_dev_desc),
+                    text = stringResource(R.string.veylo_support_description),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
-                Button(
-                    onClick = { runCatching { uriHandler.openUri(OPEN_COLLECTIVE_URL) } },
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                ) {
-                    Icon(IconOpenCollective, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(stringResource(R.string.support_flow_open_collective))
+                if (OPEN_COLLECTIVE_URL.isNotBlank()) {
+                    Button(
+                        onClick = { runCatching { uriHandler.openUri(OPEN_COLLECTIVE_URL) } },
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                    ) {
+                        Icon(IconOpenCollective, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Text(stringResource(R.string.veylo_support_open_collective))
+                    }
                 }
-                FilledTonalButton(
-                    onClick = { runCatching { uriHandler.openUri(PATREON_URL) } },
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                ) {
-                    Icon(IconPatreon, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(stringResource(R.string.support_flow_patreon))
+                if (PATREON_URL.isNotBlank()) {
+                    FilledTonalButton(
+                        onClick = { runCatching { uriHandler.openUri(PATREON_URL) } },
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                    ) {
+                        Icon(IconPatreon, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Text(stringResource(R.string.veylo_support_patreon))
+                    }
+                }
+                if (!DonationMethodsAvailable) {
+                    Text(
+                        text = stringResource(R.string.veylo_donations_unconfigured),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
         }
-        group(key = "donations.crypto", header = R.string.donations_cryptocurrency, footer = R.string.thank_you_support_message) {
-            DonationWallets.forEach { wallet ->
-                row("donations.${wallet.ticker}") { shape ->
-                    WalletRow(wallet, shape, clipLabel) {
-                        scope.launch {
-                            clipboard.copyPlainText(clipLabel, wallet.address)
-                            snackbarHostState.showSnackbar(copiedMessage)
+        if (wallets.isNotEmpty()) {
+            group(key = "donations.crypto", header = R.string.donations_cryptocurrency, footer = R.string.thank_you_support_message) {
+                wallets.forEach { wallet ->
+                    row("donations.${wallet.ticker}") { shape ->
+                        WalletRow(wallet, shape, clipLabel) {
+                            scope.launch {
+                                clipboard.copyPlainText(clipLabel, wallet.address)
+                                snackbarHostState.showSnackbar(copiedMessage)
+                            }
                         }
                     }
                 }
