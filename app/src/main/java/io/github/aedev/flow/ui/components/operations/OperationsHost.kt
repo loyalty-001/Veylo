@@ -14,6 +14,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import io.github.aedev.flow.BuildConfig
 import io.github.aedev.flow.R
 import io.github.aedev.flow.data.operations.allowedAnnouncementLink
 import io.github.aedev.flow.player.googlecast.GoogleCastManager
@@ -45,8 +46,19 @@ internal fun OperationsHost(
         }
     }
     LaunchedEffect(hasPlaybackError) { if (hasPlaybackError) viewModel.health("playback_error") }
+    val guideNeeded by viewModel.guideNeeded.collectAsStateWithLifecycle()
+    val noticeNeeded by viewModel.analyticsNoticeNeeded.collectAsStateWithLifecycle()
+    if (!enabled || update != null || !BuildConfig.UPDATER_ENABLED) return
+    if (noticeNeeded == null) return
+    if (noticeNeeded == true) {
+        AnalyticsNotice(onContinue = { viewModel.analytics(true) }, onDisable = { viewModel.analytics(false) })
+        return
+    }
+    if (guideNeeded) {
+        GettingStartedDialog(onClose = viewModel::completeGuide)
+        return
+    }
     val announcement = note ?: return
-    if (!enabled || update != null) return
     val uri = LocalUriHandler.current
     if (announcement.kind == "banner") {
         AnnouncementBanner(announcement, onDismiss = { viewModel.dismiss(announcement) }, onAction = {

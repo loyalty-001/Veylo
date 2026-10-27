@@ -146,14 +146,34 @@ async function loadPage() {
         ["Reported active today (UTC)", d.today],
         ["Reported active · 30 days", d.active30],
         ["First reported launches · 90 days", d.first90],
-        ["Reported website APK clicks", d.totalClicks],
+        ["Website APK clicks · 30 days", d.totalClicks],
+        ["GitHub APK downloads", d.github?.total],
         ["Open reports", d.openReports],
       ]) {
         const el = node("div", "");
         el.className = "metric";
-        el.append(node("span", label), node("strong", fmt.format(value)));
+        el.append(
+          node("span", label),
+          node("strong", value == null ? "Unavailable" : fmt.format(value)),
+        );
         $("metrics").append(el);
       }
+      const lastActivity = d.received?.find(
+        (x) => x.source === "activity",
+      )?.received_at;
+      const lastClick = d.received?.find(
+        (x) => x.source === "website",
+      )?.received_at;
+      const timestamp = (t) =>
+        t
+          ? new Date(t).toISOString()
+          : "None received since status tracking began";
+      $("collection-status").textContent =
+        `App collection: ${d.controls.analytics_enabled ? "enabled" : "paused"}. Last activity: ${timestamp(lastActivity)}. Last website click: ${timestamp(lastClick)}. Dashboard checked: ${timestamp(d.asOf)}.`;
+      $("download-source").textContent =
+        d.github?.total == null
+          ? "GitHub download counts are unavailable. Activity and website counts above are still valid."
+          : `APK download requests across ${d.github.releases} stable releases returned by GitHub (up to 30). Not unique people or confirmed installations. ${d.github.stale ? "Cached data; refresh is currently unavailable." : "Updated from GitHub."} Last fetched: ${timestamp(d.github.fetchedAt)}.`;
       table(
         "activity",
         ["Day (UTC)", "Active installations"],

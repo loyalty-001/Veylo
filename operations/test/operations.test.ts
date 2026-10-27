@@ -1,6 +1,8 @@
 import { env } from "cloudflare:test";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from "jose";
+import statusMigration from "../migrations/0002_collection_status.sql?raw";
+import { downloadSummary } from "../src/releases";
 import migration from "../migrations/0001_operations.sql?raw";
 import { app } from "../src/application";
 import { cleanup } from "../src/public";
@@ -50,6 +52,7 @@ const req = (
   );
 beforeAll(async () => {
   await env.DB.exec(migration);
+  await env.DB.exec(statusMigration);
   const { privateKey, publicKey } = await generateKeyPair("RS256");
   holder.resolver = createLocalJWKSet({
     keys: [{ ...(await exportJWK(publicKey)), kid: "test" }],
@@ -69,7 +72,7 @@ beforeAll(async () => {
 });
 beforeEach(async () => {
   await env.DB.exec(
-    "DELETE FROM announcements;DELETE FROM daily_installs;DELETE FROM first_launches;DELETE FROM health_counts;DELETE FROM reports;DELETE FROM audit_log;DELETE FROM held_releases;DELETE FROM download_clicks;DELETE FROM release_cache;UPDATE controls SET analytics_enabled=1,announcements_enabled=1,reports_enabled=1;",
+    "DELETE FROM collection_status;DELETE FROM announcements;DELETE FROM daily_installs;DELETE FROM first_launches;DELETE FROM health_counts;DELETE FROM reports;DELETE FROM audit_log;DELETE FROM held_releases;DELETE FROM download_clicks;DELETE FROM release_cache;UPDATE controls SET analytics_enabled=1,announcements_enabled=1,reports_enabled=1;",
   );
 });
 const note = () => ({
@@ -385,4 +388,88 @@ it("scheduled retention removes old identifiers and private reports while retain
       }>()
     )?.count,
   ).toBe(1);
+});
+
+describe("collection freshness and download totals", () => {
+  it("records last activity only when collection accepts an event", async () => {
+    const event = {
+      installId: crypto.randomUUID(),
+      version: "3.0.7",
+      code: 26,
+      category: "first_launch",
+      platform: "android",
+    };
+    await env.DB.prepare("UPDATE controls SET analytics_enabled=0").run();
+    expect((await req("/v1/events", "POST", event)).status).toBe(204);
+    expect(
+      await env.DB.prepare("SELECT * FROM collection_status").first(),
+    ).toBeNull();
+    await env.DB.prepare("UPDATE controls SET analytics_enabled=1").run();
+    expect((await req("/v1/events", "POST", event)).status).toBe(204);
+    expect(
+      (
+        await env.DB.prepare(
+          "SELECT received_at FROM collection_status WHERE source='activity'",
+        ).first<{ received_at: number }>()
+      )?.received_at,
+    ).toBeGreaterThan(0);
+    expect(
+      (await req("/v1/download-click", "POST", { variant: "universal" }))
+        .status,
+    ).toBe(204);
+    expect(
+      await env.DB.prepare(
+        "SELECT received_at FROM collection_status WHERE source='website'",
+      ).first(),
+    ).not.toBeNull();
+  });
+  it("counts APK assets only and exposes stale cached results", async () => {
+    const release = {
+      tag_name: "v3.0.7",
+      name: "Veylo",
+      published_at: null,
+      html_url: "https://github.com/loyalty-001/Veylo/releases/tag/v3.0.7",
+      draft: false,
+      prerelease: false,
+      assets: [
+        {
+          name: "Veylo.apk",
+          size: 30,
+          download_count: 9,
+          browser_download_url: "https://example.com/a.apk",
+        },
+        {
+          name: "SHA256SUMS",
+          size: 3,
+          download_count: 2,
+          browser_download_url: "https://example.com/sums",
+        },
+      ],
+    };
+    await env.DB.prepare("INSERT INTO release_cache VALUES(1,?,?)")
+      .bind(Date.now(), JSON.stringify([release]))
+      .run();
+    expect(await downloadSummary(env.DB)).toMatchObject({
+      total: 9,
+      stale: false,
+    });
+    const spy = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(new Error("offline"));
+    try {
+      await env.DB.prepare("UPDATE release_cache SET fetched_at=1").run();
+      expect(await downloadSummary(env.DB)).toMatchObject({
+        total: 9,
+        stale: true,
+        fetchedAt: 1,
+      });
+      await env.DB.prepare("DELETE FROM release_cache").run();
+      expect(await downloadSummary(env.DB)).toMatchObject({
+        total: null,
+        stale: true,
+      });
+    } finally {
+      spy.mockRestore();
+    }
+  });
 });

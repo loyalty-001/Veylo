@@ -8,6 +8,8 @@ import androidx.compose.ui.res.stringResource
 import io.github.aedev.flow.BuildConfig
 import io.github.aedev.flow.R
 import io.github.aedev.flow.data.recommendation.FlowPersona
+import io.github.aedev.flow.ui.components.operations.GettingStarted
+import io.github.aedev.flow.ui.components.operations.OperationsSettings
 import io.github.aedev.flow.ui.components.settings.SettingsDestination
 import io.github.aedev.flow.ui.components.settings.SettingsGroupScope
 import io.github.aedev.flow.ui.components.settings.SettingsListScope
@@ -129,6 +131,8 @@ internal fun SettingsListScope.homeContent(
         page(SettingsDestination.NETWORK)
         page(SettingsDestination.WELLBEING)
     }
+    item("home.operations") { OperationsSettings() }
+    item("home.getting_started") { GettingStarted() }
     group(key = "home.about", header = R.string.settings_header_about) {
         page(SettingsDestination.ABOUT)
         page(SettingsDestination.DIAGNOSTICS)

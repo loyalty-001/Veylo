@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -209,7 +211,7 @@ fun MediaDownloadDialogCompact(
         ) {
             Column(
                 modifier =
-                    Modifier.padding(
+                    Modifier.verticalScroll(rememberScrollState()).padding(
                         start = FlowDialogDefaults.ContentPadding,
                         top = FlowDialogDefaults.ContentPadding,
                         end = FlowDialogDefaults.ContentPadding,
@@ -345,6 +347,7 @@ fun MediaDownloadDialogCompact(
                     }
                 }
 
+                DownloadDestinationHint(prefs, audioOnly = isAudioMode)
                 Spacer(Modifier.height(FlowDialogDefaults.ActionsSpacing))
 
                 Row(

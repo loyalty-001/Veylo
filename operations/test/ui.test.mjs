@@ -11,7 +11,9 @@ const script = await readFile(
   "utf8",
 );
 const settle = () => new Promise((r) => setTimeout(r, 20));
-async function setup() {
+async function setup(
+  github = { total: 28, releases: 7, fetchedAt: 1793100000000, stale: false },
+) {
   const dom = new JSDOM(html, {
     url: "https://veylo-operations.scrde.workers.dev/admin",
     runScripts: "outside-only",
@@ -28,6 +30,9 @@ async function setup() {
     let data = [];
     if (path.endsWith("/overview"))
       data = {
+        github,
+        received: [{ source: "activity", received_at: 1793100000000 }],
+        asOf: 1793100010000,
         today: 12,
         active30: 32,
         first90: 40,
@@ -68,6 +73,18 @@ test("dashboard renders reported data and never treats announcement text as HTML
   const { dom, w, document: d } = await setup();
   try {
     assert.match(d.getElementById("metrics").textContent, /12/);
+    assert.match(
+      d.getElementById("metrics").textContent,
+      /GitHub APK downloads28/,
+    );
+    assert.match(
+      d.getElementById("collection-status").textContent,
+      /App collection: enabled/,
+    );
+    assert.match(
+      d.getElementById("download-source").textContent,
+      /Not unique people/,
+    );
     w.location.hash = "announcements";
     await settle();
     const input = d.querySelector("input[name=title]");
@@ -166,5 +183,71 @@ test("controls submit booleans for every service toggle", async () => {
     );
   } finally {
     dom.window.close();
+  }
+});
+
+test("unavailable and stale GitHub data are visibly different from zero", async () => {
+  for (const [github, expected] of [
+    [{ total: null, stale: true }, /unavailable/],
+    [{ total: 0, releases: 0, fetchedAt: 1, stale: true }, /Cached data/],
+  ]) {
+    const { dom, document: d } = await setup(github);
+    try {
+      assert.match(d.getElementById("download-source").textContent, expected);
+      assert.match(
+        d.getElementById("metrics").textContent,
+        github.total == null ? /Unavailable/ : /GitHub APK downloads0/,
+      );
+    } finally {
+      dom.window.close();
+    }
+  }
+});
+
+test("website tracking falls back without blocking downloads and honors privacy signals", async () => {
+  const website = await readFile(
+    new URL("../../website/index.html", import.meta.url),
+    "utf8",
+  );
+  for (const mode of ["queued", "full", "missing", "throws", "private"]) {
+    const dom = new JSDOM(website, {
+      url: "https://veylo-lra9.onrender.com/",
+      runScripts: "outside-only",
+    });
+    const w = dom.window;
+    let beacons = 0,
+      fetches = 0;
+    w.fetch = async () => {
+      fetches++;
+      return { ok: true };
+    };
+    if (mode !== "missing")
+      w.navigator.sendBeacon = () => {
+        beacons++;
+        if (mode === "throws") throw new Error("queue failed");
+        return mode === "queued";
+      };
+    if (mode === "private")
+      Object.defineProperty(w.navigator, "doNotTrack", { value: "1" });
+    try {
+      const script = [...w.document.scripts].find((s) =>
+        s.textContent.includes("/v1/download-click"),
+      );
+      assert.ok(script);
+      w.eval(script.textContent);
+      const link = w.document.querySelector(
+        'a[href*="/releases/latest/download/"]',
+      );
+      link.addEventListener("click", (e) => e.preventDefault());
+      link.click();
+      await settle();
+      assert.equal(
+        fetches,
+        ["full", "missing", "throws"].includes(mode) ? 1 : 0,
+      );
+      assert.equal(beacons, ["missing", "private"].includes(mode) ? 0 : 1);
+    } finally {
+      w.close();
+    }
   }
 });

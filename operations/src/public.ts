@@ -9,6 +9,13 @@ import {
 } from "./schema";
 import { releases } from "./releases";
 import { publicLimit, type AppEnv } from "./security";
+function received(db: D1Database, source: string) {
+  return db
+    .prepare(
+      "INSERT INTO collection_status(source,received_at) VALUES(?,?) ON CONFLICT(source) DO UPDATE SET received_at=MAX(collection_status.received_at,excluded.received_at)",
+    )
+    .bind(source, Date.now());
+}
 export const publicApi = new Hono<AppEnv>();
 publicApi.use("*", publicLimit);
 publicApi.get("/config", async (c) => {
@@ -60,13 +67,15 @@ publicApi.post("/events", async (c) => {
           "INSERT OR IGNORE INTO first_launches(install_id,day,version) VALUES(?,?,?)",
         ).bind(e.installId, day, e.version),
       );
+    statements.push(received(c.env.DB, "activity"));
     await c.env.DB.batch(statements);
   } else
-    await c.env.DB.prepare(
-      "INSERT INTO health_counts(day,version,category,count) VALUES(?,?,?,1) ON CONFLICT(day,version,category) DO UPDATE SET count=count+1",
-    )
-      .bind(day, e.version, e.category)
-      .run();
+    await c.env.DB.batch([
+      c.env.DB.prepare(
+        "INSERT INTO health_counts(day,version,category,count) VALUES(?,?,?,1) ON CONFLICT(day,version,category) DO UPDATE SET count=count+1",
+      ).bind(day, e.version, e.category),
+      received(c.env.DB, "health"),
+    ]);
   return c.body(null, 204);
 });
 publicApi.post("/forget", async (c) => {
@@ -129,11 +138,12 @@ publicApi.post("/download-click", async (c) => {
     })
     .strict()
     .parse(await c.req.json());
-  await c.env.DB.prepare(
-    "INSERT INTO download_clicks(day,variant,count) VALUES(?,?,1) ON CONFLICT(day,variant) DO UPDATE SET count=count+1",
-  )
-    .bind(new Date().toISOString().slice(0, 10), variant)
-    .run();
+  await c.env.DB.batch([
+    c.env.DB.prepare(
+      "INSERT INTO download_clicks(day,variant,count) VALUES(?,?,1) ON CONFLICT(day,variant) DO UPDATE SET count=count+1",
+    ).bind(new Date().toISOString().slice(0, 10), variant),
+    received(c.env.DB, "website"),
+  ]);
   return c.body(null, 204);
 });
 export async function cleanup(db: D1Database) {

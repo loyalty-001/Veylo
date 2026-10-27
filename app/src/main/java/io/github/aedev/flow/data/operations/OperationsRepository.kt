@@ -1,6 +1,8 @@
 package io.github.aedev.flow.data.operations
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -9,6 +11,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.aedev.flow.BuildConfig
 import io.github.aedev.flow.data.local.safePreferencesDataStore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
@@ -29,125 +33,166 @@ private val Context.operationsStore by safePreferencesDataStore(name = "veylo_op
 private const val API = "https://veylo-operations.scrde.workers.dev/v1"
 
 @Singleton
-class OperationsRepository
+class OperationsRepository internal constructor(
+    private val store: DataStore<Preferences>,
+    client: OkHttpClient,
+) {
     @Inject
     constructor(
         @ApplicationContext context: Context,
         client: OkHttpClient,
-    ) {
-        private val store = context.operationsStore
-        private val http = client.newBuilder().callTimeout(6, TimeUnit.SECONDS).build()
-        private val json = OperationsJson
-        private val consentKey = booleanPreferencesKey("analytics_enabled")
-        private val idKey = stringPreferencesKey("installation_id")
-        private val firstReportedKey = booleanPreferencesKey("first_launch_reported")
-        private val forgetKey = stringSetPreferencesKey("pending_forget_ids")
-        private val dismissedKey = stringSetPreferencesKey("dismissed_announcements")
-        private val mutex = Mutex()
-        private var lastActivityDay: String? = null
-        private var lastConfigAt = 0L
-        private var cachedConfig = OperationsConfig()
-        private val healthSent = mutableSetOf<String>()
-        val analyticsEnabled = store.data.map { it[consentKey] ?: false }
-        val dismissed = store.data.map { it[dismissedKey] ?: emptySet() }
+    ) : this(context.operationsStore, client)
 
-        internal suspend fun configuration(force: Boolean = false): OperationsConfig =
-            mutex.withLock {
-                flushForget()
-                if (!force && System.currentTimeMillis() - lastConfigAt < 60_000) return@withLock cachedConfig
-                val body = request("/config?code=${BuildConfig.VERSION_CODE}")
-                cachedConfig = json.decodeFromString<OperationsConfig>(body)
-                lastConfigAt = System.currentTimeMillis()
-                cachedConfig
-            }
+    private val http = client.newBuilder().callTimeout(6, TimeUnit.SECONDS).build()
+    private val json = OperationsJson
+    private val consentKey = booleanPreferencesKey("analytics_enabled")
+    private val guideKey = booleanPreferencesKey("getting_started_seen")
+    private val idKey = stringPreferencesKey("installation_id")
+    private val firstReportedKey = booleanPreferencesKey("first_launch_reported")
+    private val forgetKey = stringSetPreferencesKey("pending_forget_ids")
+    private val dismissedKey = stringSetPreferencesKey("dismissed_announcements")
+    private val mutex = Mutex()
+    private var lastActivityDay: String? = null
+    private var lastConfigAt = 0L
+    private var cachedConfig = OperationsConfig()
+    private val healthSent = mutableSetOf<String>()
+    private val delivery = MutableStateFlow(AnalyticsDelivery.IDLE)
+    val analyticsDelivery = delivery.asStateFlow()
+    val analyticsEnabled = store.data.map { it[consentKey] ?: true }
+    val analyticsNoticeNeeded = store.data.map { it[consentKey] == null }
+    val guideNeeded = store.data.map { it[guideKey] != true }
 
-        suspend fun setAnalyticsEnabled(enabled: Boolean) {
-            mutex.withLock {
-                store.edit {
-                    it[consentKey] = enabled
-                    if (!enabled) {
-                        it[idKey]?.let { old -> it[forgetKey] = (it[forgetKey] ?: emptySet()) + old }
-                        it.remove(idKey)
-                        it.remove(firstReportedKey)
-                    }
-                }
-                lastActivityDay = null
-                healthSent.clear()
-                flushForget()
-            }
-            if (enabled) reportActivity()
+    suspend fun completeGuide() {
+        store.edit { it[guideKey] = true }
+    }
+
+    val dismissed = store.data.map { it[dismissedKey] ?: emptySet() }
+
+    internal suspend fun configuration(force: Boolean = false): OperationsConfig =
+        mutex.withLock {
+            flushForget()
+            if (!force && System.currentTimeMillis() - lastConfigAt < 60_000) return@withLock cachedConfig
+            val body = request("/config?code=${BuildConfig.VERSION_CODE}")
+            cachedConfig = json.decodeFromString<OperationsConfig>(body)
+            lastConfigAt = System.currentTimeMillis()
+            cachedConfig
         }
 
-        private suspend fun flushForget() {
-            val pending = store.data.first()[forgetKey] ?: return
-            for (id in pending.take(10)) {
-                try {
-                    request("/forget", json.encodeToString(mapOf("installId" to id)))
-                    store.edit { it[forgetKey] = (it[forgetKey] ?: emptySet()) - id }
-                } catch (_: IOException) {
-                    // Keep failed deletions for the next foreground refresh.
-                    return
+    suspend fun setAnalyticsEnabled(enabled: Boolean) {
+        mutex.withLock {
+            store.edit {
+                it[consentKey] = enabled
+                if (!enabled) {
+                    it[idKey]?.let { old -> it[forgetKey] = (it[forgetKey] ?: emptySet()) + old }
+                    it.remove(idKey)
+                    it.remove(firstReportedKey)
                 }
             }
+            lastActivityDay = null
+            healthSent.clear()
+            flushForget()
         }
+        if (enabled) {
+            configuration(force = true)
+            reportActivity()
+        } else {
+            delivery.value =
+                if (store.data.first()[forgetKey].isNullOrEmpty()) AnalyticsDelivery.OFF else AnalyticsDelivery.DELETION_PENDING
+        }
+    }
 
-        suspend fun reportActivity(category: String = "launch") {
-            if (!BuildConfig.UPDATER_ENABLED || !analyticsEnabled.first()) return
-            mutex.withLock {
-                if (!cachedConfig.analyticsEnabled || !analyticsEnabled.first()) return@withLock
-                val day =
-                    java.time.LocalDate
-                        .now(java.time.ZoneOffset.UTC)
-                        .toString()
-                if (category == "launch" && lastActivityDay == day) return@withLock
-                if (category != "launch" &&
-                    (category !in setOf("playback_error", "cast_error", "update_error") || category in healthSent)
-                ) {
-                    return@withLock
+    private suspend fun flushForget() {
+        val pending = store.data.first()[forgetKey] ?: return
+        for (id in pending.take(10)) {
+            try {
+                request("/forget", json.encodeToString(mapOf("installId" to id)))
+                store.edit { it[forgetKey] = (it[forgetKey] ?: emptySet()) - id }
+            } catch (_: IOException) {
+                // Keep failed deletions for the next foreground refresh.
+                return
+            }
+        }
+        if (store.data.first()[consentKey] == false) delivery.value = AnalyticsDelivery.OFF
+    }
+
+    suspend fun reportActivity(category: String = "launch") {
+        if (!BuildConfig.UPDATER_ENABLED || store.data.first()[consentKey] != true) return
+        mutex.withLock {
+            if (store.data.first()[consentKey] != true) return@withLock
+            if (!cachedConfig.analyticsEnabled) {
+                delivery.value = AnalyticsDelivery.PAUSED
+                return@withLock
+            }
+            val day =
+                java.time.LocalDate
+                    .now(java.time.ZoneOffset.UTC)
+                    .toString()
+            if (category == "launch" && lastActivityDay == day) return@withLock
+            if (category != "launch" &&
+                (category !in setOf("playback_error", "cast_error", "update_error") || category in healthSent)
+            ) {
+                return@withLock
+            }
+            val id =
+                store.data.first()[idKey] ?: UUID.randomUUID().toString().also { newId ->
+                    store.edit { it[idKey] = newId }
                 }
-                val id =
-                    store.data.first()[idKey] ?: UUID.randomUUID().toString().also { newId ->
-                        store.edit { it[idKey] = newId }
-                    }
-                val eventCategory = if (category == "launch" && store.data.first()[firstReportedKey] != true) "first_launch" else category
+            val eventCategory = if (category == "launch" && store.data.first()[firstReportedKey] != true) "first_launch" else category
+            try {
                 request(
                     "/events",
                     json.encodeToString(ActivityEvent(id, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, eventCategory)),
                 )
-                if (eventCategory == "first_launch") store.edit { it[firstReportedKey] = true }
-                if (category == "launch") lastActivityDay = day else healthSent.add(category)
+                delivery.value = AnalyticsDelivery.SENT
+            } catch (e: IOException) {
+                delivery.value = AnalyticsDelivery.FAILED
+                throw e
             }
+            if (eventCategory == "first_launch") store.edit { it[firstReportedKey] = true }
+            if (category == "launch") lastActivityDay = day else healthSent.add(category)
         }
+    }
 
-        internal suspend fun dismiss(announcement: AppAnnouncement) {
-            store.edit { it[dismissedKey] = ((it[dismissedKey] ?: emptySet()) + announcement.dismissalKey).toList().takeLast(200).toSet() }
-        }
-
-        suspend fun sendReport(
-            category: String,
-            message: String,
-        ) {
-            require(message.trim().length in 10..2000)
-            require(category in setOf("playback", "casting", "downloads", "updates", "other"))
-            request(
-                "/reports",
-                json.encodeToString(ProblemReport(category, message.trim(), BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)),
-            )
-        }
-
-        private suspend fun request(
-            path: String,
-            body: String? = null,
-        ): String =
-            withContext(Dispatchers.IO) {
-                val request = Request.Builder().url(API + path).header("Accept", "application/json")
-                if (body != null) request.post(body.toRequestBody("application/json".toMediaType()))
-                http.newCall(request.build()).execute().use {
-                    if (!it.isSuccessful) throw IOException("Operations request failed: ${it.code}")
-                    if (it.body.contentLength() > 65536) throw IOException("Response too large")
-                    val source = it.body.source()
-                    if (source.request(65_537)) throw IOException("Response too large")
-                    source.readUtf8()
-                }
+    internal suspend fun deliveryFailed() {
+        val preferences = store.data.first()
+        delivery.value =
+            when {
+                !preferences[forgetKey].isNullOrEmpty() -> AnalyticsDelivery.DELETION_PENDING
+                preferences[consentKey] == false -> AnalyticsDelivery.OFF
+                preferences[consentKey] == true -> AnalyticsDelivery.FAILED
+                else -> AnalyticsDelivery.IDLE
             }
     }
+
+    internal suspend fun dismiss(announcement: AppAnnouncement) {
+        store.edit { it[dismissedKey] = ((it[dismissedKey] ?: emptySet()) + announcement.dismissalKey).toList().takeLast(200).toSet() }
+    }
+
+    suspend fun sendReport(
+        category: String,
+        message: String,
+    ) {
+        require(message.trim().length in 10..2000)
+        require(category in setOf("playback", "casting", "downloads", "updates", "other"))
+        request(
+            "/reports",
+            json.encodeToString(ProblemReport(category, message.trim(), BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)),
+        )
+    }
+
+    private suspend fun request(
+        path: String,
+        body: String? = null,
+    ): String =
+        withContext(Dispatchers.IO) {
+            val request = Request.Builder().url(API + path).header("Accept", "application/json")
+            if (body != null) request.post(body.toRequestBody("application/json".toMediaType()))
+            http.newCall(request.build()).execute().use {
+                if (!it.isSuccessful) throw IOException("Operations request failed: ${it.code}")
+                if (it.body.contentLength() > 65536) throw IOException("Response too large")
+                val source = it.body.source()
+                if (source.request(65_537)) throw IOException("Response too large")
+                source.readUtf8()
+            }
+        }
+}
